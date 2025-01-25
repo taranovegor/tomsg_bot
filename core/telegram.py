@@ -1,6 +1,7 @@
 import logging
 import re
 from abc import ABC, abstractmethod
+from urllib.parse import urlparse
 
 import validators
 from telegram import (
@@ -14,6 +15,7 @@ from telegram import (
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
+from core.analytics import Analytics, Event, Events
 from core.parser import Entity, NoParserFound, Parser, Text, Video
 
 
@@ -110,21 +112,27 @@ def error_result(identifier: str, title: str, description: str, query: str) -> I
 class Handler:
     URL_REGEX = re.compile(r"^(https?://(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(/\S*)?$")
 
-    def __init__(self, parser: Parser, result_factory: ResultFactory):
+    def __init__(self, parser: Parser, result_factory: ResultFactory, analytics: Analytics):
         self.parser = parser
         self.result_factory = result_factory
+        self.analytics = analytics
 
     async def inline_query(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        query = update.inline_query.query
-
+        inline_query = update.inline_query
+        query = inline_query.query
         if not query:
             return
 
+        events = Events(str(inline_query.from_user.id))
+
         if validators.url(query) or self.URL_REGEX.match(query):
+            domain = urlparse(query).netloc
+            events.add(Event('query_received').add('domain', domain))
             try:
                 entity = self.parser.parse(query)
                 result = self.result_factory.create(entity)
             except NoParserFound:
+                events.add(Event('error_handled').add('type', 'parser not found').add('domain', domain))
                 result = error_result(
                     'no_parser_found',
                     '🔗 Ссылка не поддерживается',
@@ -132,6 +140,7 @@ class Handler:
                     query,
                 )
             except Exception as e:
+                events.add(Event('error_handled').add('type', e))
                 logging.error('An exception occurred: %s', e)
                 result = error_result(
                     'exception',
@@ -140,6 +149,7 @@ class Handler:
                     query,
                 )
         else:
+            events.add(Event('error_handled').add('type', 'invalid_url'))
             result = error_result(
                 'invalid_url',
                 '❌ Невозможно обработать',
@@ -148,3 +158,4 @@ class Handler:
             )
 
         await update.inline_query.answer(results=[result], cache_time=1)
+        await self.analytics.log(events)
