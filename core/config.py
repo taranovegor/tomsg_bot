@@ -19,12 +19,19 @@ class TikTokConfig:
         self.thumbnail_resource_url = os.getenv('TIKTOK_THUMBNAIL_RESOURCE_URL')
 
 
+class GoogleAnalyticsConfig:
+    def __init__(self):
+        self.measurement_id = os.getenv("GA_MEASUREMENT_ID")
+        self.secret = os.getenv("GA_SECRET")
+
+
 class Config:
     def __init__(self):
         self.version = os.getenv("VERSION")
         self.debug = os.getenv("DEBUG") == "true"
         self.telegram = TelegramConfig()
         self.reddit = RedditConfig()
+        self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
 
 

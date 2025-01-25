@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.ext import Application, InlineQueryHandler
 
 from core import parser, telegram, app
+from core.analytics import Analytics, GoogleAnalytics
 from core.config import Config
 from parser import (
     habr,
@@ -55,6 +56,16 @@ class Service:
             raise RuntimeError(f"Service initialization failed: {e}") from e
 
 
+def __analytics_ga(container: Container) -> Analytics:
+    config = container.config.google_analytics
+
+    return GoogleAnalytics(
+        config.measurement_id,
+        config.secret,
+        f'{os.name}:{app.name()}:{app.version()}',
+    )
+
+
 def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
     return parser.DelegatingParser(parsers=[
         container.get("parser__habr"),
@@ -87,6 +98,7 @@ def __telegram_handler(container: Container) -> telegram.Handler:
     return telegram.Handler(
         parser=container.get("parser_delegating_parser"),
         result_factory=container.get("telegram_delegating_result_factory"),
+        analytics=container.get('analytics_ga'),
     )
 
 
@@ -129,6 +141,7 @@ def __parser_trashbox(_: Container) -> parser.Parser:
 def load_container(config):
     container = Container(config)
 
+    container.register('analytics_ga', __analytics_ga)
     container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("telegram_text_factory", __telegram_text_factory)
     container.register("telegram_video_factory", __telegram_video_factory)
