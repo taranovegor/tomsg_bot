@@ -33,3 +33,6 @@ make start
 |-------------------------|----------------------------------------------------------------------------|
 | `DEBUG`                 | Indicates whether the application is running in debug mode (`true/false`). |
 | `TELEGRAM_BOT_TOKEN`    | Telegram bot token required for the bot to operate.                        |
+| `REDDIT_CLIENT_ID`      | Reddit API Client ID used for API authentication.                          |
+| `REDDIT_CLIENT_SECRET`  | Reddit API Client Secret for secure API access.                            |
+| `REDDIT_OWNER_USERNAME` | Owner's Reddit username for identification purposes in operations.         |

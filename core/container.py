@@ -1,10 +1,12 @@
 import logging
+import os
 
 from telegram import Update
 from telegram.ext import Application, InlineQueryHandler
 
-from core import parser, telegram
+from core import parser, telegram, app
 from core.config import Config
+from parser import reddit
 
 
 class Container:
@@ -49,7 +51,9 @@ class Service:
 
 
 def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
-    return parser.DelegatingParser(parsers=[])
+    return parser.DelegatingParser(parsers=[
+        container.get("parser__reddit")
+    ])
 
 
 def __telegram_text_factory(_: Container) -> telegram.TextFactory:
@@ -80,15 +84,24 @@ def __app(container: Container) -> None:
     return app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
+def __parser_reddit(container: Container) -> parser.Parser:
+    config = container.config.reddit
+
+    return reddit.Parser(
+        config.client_id,
+        config.client_secret,
+        f'{os.name}:{app.name()}:{app.version()} (by /u/{config.app_owner_username})',
+    )
+
 def load_container(config):
     container = Container(config)
 
     container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("telegram_text_factory", __telegram_text_factory)
-    container.register(
-        "telegram_delegating_result_factory", __telegram_delegating_result_factory
-    )
+    container.register("telegram_delegating_result_factory", __telegram_delegating_result_factory)
     container.register("telegram_handler", __telegram_handler)
     container.register("app", __app)
+
+    container.register("parser__reddit", __parser_reddit)
 
     return container
