@@ -6,7 +6,7 @@ from telegram.ext import Application, InlineQueryHandler
 
 from core import parser, telegram, app
 from core.config import Config
-from parser import reddit
+from parser import reddit, trashbox
 
 
 class Container:
@@ -52,7 +52,8 @@ class Service:
 
 def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
     return parser.DelegatingParser(parsers=[
-        container.get("parser__reddit")
+        container.get("parser__reddit"),
+        container.get("parser__trashbox"),
     ])
 
 
@@ -93,6 +94,9 @@ def __parser_reddit(container: Container) -> parser.Parser:
         f'{os.name}:{app.name()}:{app.version()} (by /u/{config.app_owner_username})',
     )
 
+def __parser_trashbox(container: Container) -> parser.Parser:
+    return trashbox.Parser(f'{os.name}:{app.name()}:{app.version()}')
+
 def load_container(config):
     container = Container(config)
 
@@ -103,5 +107,6 @@ def load_container(config):
     container.register("app", __app)
 
     container.register("parser__reddit", __parser_reddit)
+    container.register("parser__trashbox", __parser_trashbox)
 
     return container
