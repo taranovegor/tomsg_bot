@@ -7,3 +7,6 @@ services:
         environment:
             - DEBUG
             - TELEGRAM_BOT_TOKEN
+            - REDDIT_CLIENT_ID
+            - REDDIT_CLIENT_SECRET
+            - REDDIT_APP_OWNER_USERNAME
