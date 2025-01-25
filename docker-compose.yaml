@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+    app:
+        image: taranovegor/tomsg_bot:latest
+        container_name: tomsg_bot
+        restart: on-failure
+        environment:
+            - DEBUG
+            - TELEGRAM_BOT_TOKEN
