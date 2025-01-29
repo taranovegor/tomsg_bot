@@ -13,12 +13,19 @@ class RedditConfig:
         self.app_owner_username = os.getenv("REDDIT_APP_OWNER_USERNAME")
 
 
+class TikTokConfig:
+    def __init__(self):
+        self.video_resource_url = os.getenv('TIKTOK_VIDEO_RESOURCE_URL')
+        self.thumbnail_resource_url = os.getenv('TIKTOK_THUMBNAIL_RESOURCE_URL')
+
+
 class Config:
     def __init__(self):
         self.version = os.getenv("VERSION")
         self.debug = os.getenv("DEBUG") == "true"
         self.telegram = TelegramConfig()
         self.reddit = RedditConfig()
+        self.tiktok = TikTokConfig()
 
 
 def load_config():

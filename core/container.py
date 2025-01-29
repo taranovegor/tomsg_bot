@@ -9,6 +9,7 @@ from core.config import Config
 from parser import (
     habr,
     reddit,
+    tiktok,
     trashbox,
 )
 
@@ -58,6 +59,7 @@ def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
     return parser.DelegatingParser(parsers=[
         container.get("parser__habr"),
         container.get("parser__reddit"),
+        container.get('parser__tiktok'),
         container.get("parser__trashbox"),
     ])
 
@@ -66,12 +68,17 @@ def __telegram_text_factory(_: Container) -> telegram.TextFactory:
     return telegram.TextFactory()
 
 
+def __telegram_video_factory(_: Container) -> telegram.VideoFactory:
+    return telegram.VideoFactory()
+
+
 def __telegram_delegating_result_factory(
     container: Container,
 ) -> telegram.DelegatingResultFactory:
     return telegram.DelegatingResultFactory(
         factories={
             telegram.Text.type(): container.get("telegram_text_factory"),
+            telegram.Video.type(): container.get('telegram_video_factory'),
         }
     )
 
@@ -104,6 +111,17 @@ def __parser_reddit(container: Container) -> parser.Parser:
     )
 
 
+def __parser_tiktok(container: Container) -> parser.Parser:
+    config = container.config.tiktok
+
+
+    return tiktok.Parser(
+        config.video_resource_url,
+        config.thumbnail_resource_url,
+        f'{os.name}:{app.name()}:{app.version()}',
+    )
+
+
 def __parser_trashbox(_: Container) -> parser.Parser:
     return trashbox.Parser(f'{os.name}:{app.name()}:{app.version()}')
 
@@ -113,12 +131,14 @@ def load_container(config):
 
     container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("telegram_text_factory", __telegram_text_factory)
+    container.register("telegram_video_factory", __telegram_video_factory)
     container.register("telegram_delegating_result_factory", __telegram_delegating_result_factory)
     container.register("telegram_handler", __telegram_handler)
     container.register("app", __app)
 
     container.register("parser__habr", __parser_habr)
     container.register("parser__reddit", __parser_reddit)
+    container.register('parser__tiktok', __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
 
     return container

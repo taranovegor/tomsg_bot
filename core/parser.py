@@ -38,6 +38,18 @@ class Text(Entity):
         return "text"
 
 
+@dataclass()
+class Video(Entity):
+    resource_url: str
+    mime_type: str
+    thumbnail_url: str
+    backlink: Link
+
+    @staticmethod
+    def type() -> str:
+        return "video"
+
+
 class Parser(ABC):
     @abstractmethod
     def supports(self, string: str) -> bool:
