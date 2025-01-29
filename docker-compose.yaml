@@ -10,3 +10,5 @@ services:
             - REDDIT_CLIENT_ID
             - REDDIT_CLIENT_SECRET
             - REDDIT_APP_OWNER_USERNAME
+            - TIKTOK_VIDEO_RESOURCE_URL
+            - TIKTOK_THUMBNAIL_RESOURCE_URL
