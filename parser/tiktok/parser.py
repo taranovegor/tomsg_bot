@@ -5,8 +5,8 @@ from core.parser import Parser as BaseParser, Video, UnableToParse, Link
 
 
 class Parser(BaseParser):
-    SHORT_URL_REGEX = re.compile(r"^https://vm\.tiktok\.com/(?P<video_id>\w+)/?(\?.*)?$")
-    FULL_URL_REGEX = re.compile(r"^https://(?:www|m\.)?tiktok\.com/(?:@[^/]*/video/|v/)(?P<video_id>\d+)(?:\.html)?/?(\?.*)?$")
+    SHORT_URL_REGEX = re.compile(r"^https://(vm|vt)\.tiktok\.com/(?P<video_id>\w+)/?(\?.*)?$")
+    FULL_URL_REGEX = re.compile(r"^https://(www\.|m\.)?tiktok\.com/(?:@[^/]*/video/|v/)(?P<video_id>\d+)(?:\.html)?/?(\?.*)?$")
 
     def __init__(self, video_resource_url: str, thumbnail_resource_url: str, user_agent: str):
         self.video_resource_url = video_resource_url
