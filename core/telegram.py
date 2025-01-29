@@ -1,4 +1,5 @@
 import logging
+import re
 from abc import ABC, abstractmethod
 
 import validators
@@ -8,11 +9,12 @@ from telegram import (
     InputTextMessageContent,
     LinkPreviewOptions,
     Update,
+    InlineQueryResultVideo,
 )
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from core.parser import Entity, NoParserFound, Parser, Text
+from core.parser import Entity, NoParserFound, Parser, Text, Video
 
 
 class ErrFactoryNotFound(Exception):
@@ -72,6 +74,28 @@ class TextFactory(ResultFactory):
         )
 
 
+class VideoFactory(ResultFactory):
+    def create(self, e: Video) -> InlineQueryResult:
+        caption = '📹'
+        if e.backlink.text == '':
+            description = e.backlink.url
+            caption += f'<a href="{e.backlink.url}">{e.backlink.url}</a>'
+        else:
+            description = e.backlink.text
+            caption += f'<a href="{e.backlink.url}">{e.backlink.text}</a>'
+
+        return InlineQueryResultVideo(
+            id=e.type(),
+            video_url=e.resource_url,
+            mime_type=e.mime_type,
+            thumbnail_url=e.thumbnail_url,
+            title='➡️ Отправить видео',
+            caption=caption,
+            description=description,
+            parse_mode=ParseMode.HTML,
+        )
+
+
 def error_result(identifier: str, title: str, description: str, query: str) -> InlineQueryResultArticle:
     return InlineQueryResultArticle(
         id=f'e_{identifier}',
@@ -84,6 +108,8 @@ def error_result(identifier: str, title: str, description: str, query: str) -> I
 
 
 class Handler:
+    URL_REGEX = re.compile(r"^(https?://(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(/\S*)?$")
+
     def __init__(self, parser: Parser, result_factory: ResultFactory):
         self.parser = parser
         self.result_factory = result_factory
@@ -94,7 +120,7 @@ class Handler:
         if not query:
             return
 
-        if validators.url(query):
+        if validators.url(query) or self.URL_REGEX.match(query):
             try:
                 entity = self.parser.parse(query)
                 result = self.result_factory.create(entity)
