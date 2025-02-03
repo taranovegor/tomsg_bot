@@ -6,6 +6,13 @@ class TelegramConfig:
         self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
+class InstagramConfig:
+    def __init__(self):
+        self.video_meta_url = os.getenv('INSTAGRAM_VIDEO_META_URL')
+        self.video_storage_url = os.getenv('INSTAGRAM_VIDEO_STORAGE_URL')
+        self.thumbnail_url = os.getenv('INSTAGRAM_THUMBNAIL_URL')
+
+
 class RedditConfig:
     def __init__(self):
         self.client_id = os.getenv("REDDIT_CLIENT_ID")
@@ -30,6 +37,7 @@ class Config:
         self.version = os.getenv("VERSION")
         self.debug = os.getenv("DEBUG") == "true"
         self.telegram = TelegramConfig()
+        self.instagram = InstagramConfig()
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
