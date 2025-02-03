@@ -8,6 +8,7 @@ from core import parser, telegram, app
 from core.analytics import Analytics, GoogleAnalytics
 from core.config import Config
 from parser import (
+    cmtt,
     habr,
     reddit,
     tiktok,
@@ -68,6 +69,7 @@ def __analytics_ga(container: Container) -> Analytics:
 
 def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
     return parser.DelegatingParser(parsers=[
+        container.get('parser__cmtt'),
         container.get("parser__habr"),
         container.get("parser__reddit"),
         container.get('parser__tiktok'),
@@ -107,6 +109,10 @@ def __app(container: Container) -> None:
     app.add_handler(InlineQueryHandler(container.get("telegram_handler").inline_query))
 
     return app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+
+def __parser_cmtt(_: Container) -> parser.Parser:
+    return cmtt.Parser(f'{os.name}:{app.name()}:{app.version()}')
 
 
 def __parser_habr(_: Container) -> parser.Parser:
@@ -149,6 +155,7 @@ def load_container(config):
     container.register("telegram_handler", __telegram_handler)
     container.register("app", __app)
 
+    container.register('parser__cmtt', __parser_cmtt)
     container.register("parser__habr", __parser_habr)
     container.register("parser__reddit", __parser_reddit)
     container.register('parser__tiktok', __parser_tiktok)
