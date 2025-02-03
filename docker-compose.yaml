@@ -7,6 +7,9 @@ services:
         environment:
             - DEBUG
             - TELEGRAM_BOT_TOKEN
+            - INSTAGRAM_VIDEO_META_URL
+            - INSTAGRAM_VIDEO_STORAGE_URL
+            - INSTAGRAM_THUMBNAIL_URL
             - REDDIT_CLIENT_ID
             - REDDIT_CLIENT_SECRET
             - REDDIT_APP_OWNER_USERNAME

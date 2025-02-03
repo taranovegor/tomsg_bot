@@ -33,6 +33,9 @@ make start
 |---------------------------------|-----------------------------------------------------------------------------------------------------|
 | `DEBUG`                         | Indicates whether the application is running in debug mode (`true/false`).                          |
 | `TELEGRAM_BOT_TOKEN`            | Telegram bot token required for the bot to operate.                                                 |
+| `INSTAGRAM_VIDEO_META_URL`      | URL template for retrieving Instagram video metadata, with `{0}` and `{1}` as placeholders.         |
+| `INSTAGRAM_VIDEO_STORAGE_URL`   | URL template for accessing stored Instagram videos, with `{0}` as a placeholder.                    |
+| `INSTAGRAM_THUMBNAIL_URL`       | Static URL for Instagram video thumbnails used in the application.                                  |
 | `REDDIT_CLIENT_ID`              | Reddit API Client ID used for API authentication.                                                   |
 | `REDDIT_CLIENT_SECRET`          | Reddit API Client Secret for secure API access.                                                     |
 | `REDDIT_OWNER_USERNAME`         | Owner's Reddit username for identification purposes in operations.                                  |

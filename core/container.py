@@ -10,6 +10,7 @@ from core.config import Config
 from parser import (
     cmtt,
     habr,
+    instagram,
     reddit,
     tiktok,
     trashbox,
@@ -71,6 +72,7 @@ def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
     return parser.DelegatingParser(parsers=[
         container.get('parser__cmtt'),
         container.get("parser__habr"),
+        container.get('parser__instagram'),
         container.get("parser__reddit"),
         container.get('parser__tiktok'),
         container.get("parser__trashbox"),
@@ -119,6 +121,17 @@ def __parser_habr(_: Container) -> parser.Parser:
     return habr.Parser(f'{os.name}:{app.name()}:{app.version()}')
 
 
+def __parser_instagram(container: Container) -> parser.Parser:
+    config = container.config.instagram
+
+    return instagram.Parser(
+        config.video_meta_url,
+        config.video_storage_url,
+        config.thumbnail_url,
+        f'{os.name}:{app.name()}:{app.version()} (like TwitterBot)',
+    )
+
+
 def __parser_reddit(container: Container) -> parser.Parser:
     config = container.config.reddit
 
@@ -157,6 +170,7 @@ def load_container(config):
 
     container.register('parser__cmtt', __parser_cmtt)
     container.register("parser__habr", __parser_habr)
+    container.register('parser__instagram', __parser_instagram)
     container.register("parser__reddit", __parser_reddit)
     container.register('parser__tiktok', __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
