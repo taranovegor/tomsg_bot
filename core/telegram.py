@@ -140,7 +140,7 @@ class Handler:
                     query,
                 )
             except Exception as e:
-                events.add(Event('error_handled').add('type', e))
+                events.add(Event('error_handled').add('type', str(e)))
                 logging.error('An exception occurred: %s', e)
                 result = error_result(
                     'exception',
