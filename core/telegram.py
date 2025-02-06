@@ -48,8 +48,11 @@ class TextFactory(ResultFactory):
             msg += f'<a href="{e.author.url}">{e.author.url}</a>'
         else:
             msg += f'<a href="{e.author.url}">{e.author.text}</a>'
-        msg += ', '
-        msg += e.created_at.strftime('%d.%m.%y %H:%M %Z')
+
+        if e.created_at:
+            msg += ', '
+            msg += e.created_at.strftime('%d.%m.%y %H:%M %Z')
+
         msg += '\n'
         msg += e.content
         msg += '\n\n'
@@ -78,7 +81,28 @@ class TextFactory(ResultFactory):
 
 class VideoFactory(ResultFactory):
     def create(self, e: Video) -> InlineQueryResult:
-        caption = '📹'
+        caption = ''
+
+        if e.author:
+            caption += '💁'
+            if e.author.url == '':
+                caption += e.author.text
+            elif e.author.text == '':
+                caption += f'<a href="{e.author.url}">{e.author.url}</a>'
+            else:
+                caption += f'<a href="{e.author.url}">{e.author.text}</a>'
+
+
+        if e.created_at:
+            caption += ', '
+            caption += e.created_at.strftime('%d.%m.%y %H:%M %Z')
+
+        caption += '\n'
+
+        if e.caption:
+            caption += f'{e.caption}\n\n'
+
+        caption += '📹'
         if e.backlink.text == '':
             description = e.backlink.url
             caption += f'<a href="{e.backlink.url}">{e.backlink.url}</a>'

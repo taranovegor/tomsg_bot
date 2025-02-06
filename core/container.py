@@ -14,6 +14,7 @@ from parser import (
     reddit,
     tiktok,
     trashbox,
+    twitter,
     vk,
 )
 
@@ -77,6 +78,7 @@ def __parser_delegating_parser(container: Container) -> parser.DelegatingParser:
         container.get("parser__reddit"),
         container.get('parser__tiktok'),
         container.get("parser__trashbox"),
+        container.get('parser__twitter'),
         container.get('parser__vk'),
     ])
 
@@ -159,6 +161,15 @@ def __parser_trashbox(_: Container) -> parser.Parser:
     return trashbox.Parser(f'{os.name}:{app.name()}:{app.version()}')
 
 
+def __parser_twitter(container: Container) -> parser.Parser:
+    config = container.config.twitter
+
+    return twitter.Parser(
+        config.video_meta_url,
+        f'{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)',
+    )
+
+
 def __parser_vk(container: Container) -> parser.Parser:
     config = container.config.vk
 
@@ -185,6 +196,7 @@ def load_container(config):
     container.register("parser__reddit", __parser_reddit)
     container.register('parser__tiktok', __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
+    container.register('parser__twitter', __parser_twitter)
     container.register('parser__vk', __parser_vk)
 
     return container

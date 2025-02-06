@@ -37,6 +37,11 @@ class VKConfig:
         self.thumbnail_url = os.getenv('VK_THUMBNAIL_URL')
 
 
+class TwitterConfig:
+    def __init__(self):
+        self.video_meta_url = os.getenv('TWITTER_VIDEO_META_URL')
+
+
 class Config:
     def __init__(self):
         self.version = os.getenv("VERSION")
@@ -46,6 +51,7 @@ class Config:
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
+        self.twitter = TwitterConfig()
         self.vk = VKConfig()
 
 

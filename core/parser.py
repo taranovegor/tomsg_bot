@@ -28,7 +28,7 @@ class Link:
 @dataclass
 class Text(Entity):
     author: Link
-    created_at: datetime
+    created_at: datetime|None
     metrics: List[str]
     content: str
     backlink: Link
@@ -44,6 +44,9 @@ class Video(Entity):
     mime_type: str
     thumbnail_url: str
     backlink: Link
+    caption: str = None
+    author: Link|None = None
+    created_at: datetime|None = None
 
     @staticmethod
     def type() -> str:
