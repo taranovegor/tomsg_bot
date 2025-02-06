@@ -32,6 +32,11 @@ class GoogleAnalyticsConfig:
         self.secret = os.getenv("GA_SECRET")
 
 
+class VKConfig:
+    def __init__(self):
+        self.thumbnail_url = os.getenv('VK_THUMBNAIL_URL')
+
+
 class Config:
     def __init__(self):
         self.version = os.getenv("VERSION")
@@ -41,6 +46,7 @@ class Config:
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
+        self.vk = VKConfig()
 
 
 def load_config():
