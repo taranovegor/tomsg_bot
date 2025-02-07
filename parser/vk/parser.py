@@ -2,8 +2,14 @@ import re
 
 import requests
 
-from core.parser import Parser as BaseParser, Video, UnableToParse, Link
-from parser.instagram.meta import HTMLMetaExtractor
+from core import (
+    Parser as BaseParser,
+    Video,
+    ParseError,
+    Link,
+    Content,
+    HTMLMetaExtractor,
+)
 
 
 class Parser(BaseParser):
@@ -20,26 +26,30 @@ class Parser(BaseParser):
             self.OK_URL_REGEX,
         ])
 
-    def parse(self, url: str) -> Video:
+    def parse(self, url: str) -> Content:
         if not self.supports(url):
-            raise UnableToParse('Unsupported url')
+            raise ParseError('Unsupported url')
 
         response = requests.get(url, headers={'User-Agent': self.user_agent})
         if response.status_code != 200:
-            raise UnableToParse('Unhandled response error')
+            raise ParseError('Unhandled response error')
 
         meta = HTMLMetaExtractor(response.text).extract()
         if 'og:video' not in meta:
-            raise UnableToParse('Failed to retrieve video resource')
+            raise ParseError('Failed to retrieve video resource')
 
         if self.VK_URL_REGEX.match(url):
             backlink_url = meta.get('og:url')
         else:
             backlink_url = url
 
-        return Video(
-            resource_url=meta.get('og:video'),
-            mime_type='video/mp4',
-            thumbnail_url=self.thumbnail_url,
-            backlink=Link(backlink_url, ''),
+        return Content(
+            backlink=Link(backlink_url),
+            media=[
+                Video(
+                    resource_url=meta.get('og:video'),
+                    mime_type='video/mp4',
+                    thumbnail_url=self.thumbnail_url,
+                )
+            ],
         )

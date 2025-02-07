@@ -4,8 +4,7 @@ import json
 
 from datetime import datetime
 
-from core.parser import UnableToParse, Text, Link
-from core.parser import Parser as BaseParser
+from core import Parser as BaseParser, ParseError, Content, Link
 
 
 class Parser(BaseParser):
@@ -18,10 +17,10 @@ class Parser(BaseParser):
     def supports(self, url):
         return bool(self.URL_REGEX.match(url))
 
-    def parse(self, string: str) -> Text:
+    def parse(self, string: str) -> Content:
         match = self.URL_REGEX.search(string)
         if not match:
-            raise UnableToParse('unsupported scheme')
+            raise ParseError('unsupported scheme')
 
         domain = match.group('domain')
         comment_id = int(match.group('comment_id'))
@@ -34,7 +33,7 @@ class Parser(BaseParser):
                 break
 
         if comment is None:
-            raise UnableToParse('comment not found in response')
+            raise ParseError('comment not found in response')
 
         author_id = comment['author']['id']
         author_name = comment['author']['name']
@@ -48,10 +47,10 @@ class Parser(BaseParser):
             if r_count > 0 and r_id in self.REACTIONS_EMOJIS:
                 reactions.append(f'{self.REACTIONS_EMOJIS[r_id]} {r_count}')
 
-        return Text(
+        return Content(
             author=Link(url=f'https://{domain}/u/{author_id}/', text=author_name),
             created_at=datetime.fromtimestamp(comment['date']),
-            content=comment['text'],
+            text=comment['text'],
             metrics=reactions,
             backlink=Link(url=f'https://{domain}/{article_id}?comment={comment_id}', text=article_title),
         )
@@ -61,4 +60,4 @@ class Parser(BaseParser):
         if response.status_code == 200:
             return json.loads(response.text)
         else:
-            raise UnableToParse(f'invalid status code {response.status_code}')
+            raise ParseError(f'invalid status code {response.status_code}')
