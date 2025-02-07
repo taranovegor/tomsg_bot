@@ -41,7 +41,6 @@ make start
 | `REDDIT_OWNER_USERNAME`         | Owner's Reddit username for identification purposes in operations.                                  |
 | `TIKTOK_VIDEO_RESOURCE_URL`     | URL template for accessing TikTok video files, with %s as a placeholder for the video ID.           | 
 | `TIKTOK_THUMBNAIL_RESOURCE_URL` | URL template for accessing TikTok video thumbnails, with %s as a placeholder for the video ID.      |
-| `TWITTER_VIDEO_META_URL`        | URL template for retrieving Twitter (X) post metadata, with `{0}` and `{1}` as placeholders.        |
 | `GA_MEASUREMENT_ID`             | Unique identifier for the Google Analytics property used to track and measure app activity.         |
 | `GA_SECRET`                     | Secret key used for authenticating requests to Google Analytics API, ensuring secure data handling. |
 | `VK_THUMBNAIL_URL`              | Static URL for VK clips thumbnails used in the application.                                         |

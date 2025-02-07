@@ -55,16 +55,6 @@ class VKConfig:
         self.thumbnail_url = os.getenv("VK_THUMBNAIL_URL")
 
 
-class TwitterConfig:
-    """Holds the configuration for Twitter-related settings."""
-
-    def __init__(self):
-        """
-        Initializes with Twitter video meta URL from the environment variable.
-        """
-        self.video_meta_url = os.getenv("TWITTER_VIDEO_META_URL")
-
-
 class Config:
     """Holds the entire configuration for all services."""
 
@@ -77,7 +67,6 @@ class Config:
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
-        self.twitter = TwitterConfig()
         self.vk = VKConfig()
 
 

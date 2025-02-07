@@ -170,11 +170,9 @@ def __parser_trashbox(_: Container) -> Parser:
     return trashbox.Parser(f"{os.name}:{app.name()}:{app.version()}")
 
 
-def __parser_twitter(container: Container) -> Parser:
+def __parser_twitter(_: Container) -> Parser:
     """Initializes and returns a twitter.Parser instance."""
-    config = container.config.twitter
     return twitter.Parser(
-        config.video_meta_url,
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
     )
 

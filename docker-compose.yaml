@@ -15,7 +15,6 @@ services:
             - REDDIT_APP_OWNER_USERNAME
             - TIKTOK_VIDEO_RESOURCE_URL
             - TIKTOK_THUMBNAIL_RESOURCE_URL
-            - TWITTER_VIDEO_META_URL
             - GA_MEASUREMENT_ID
             - GA_SECRET
             - VK_THUMBNAIL_URL
