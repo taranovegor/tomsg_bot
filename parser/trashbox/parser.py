@@ -7,8 +7,7 @@ from urllib.parse import urlparse
 from html import unescape
 from datetime import datetime
 
-from core.parser import UnableToParse, Text, Link
-from core.parser import Parser as BaseParser
+from core import Parser as BaseParser, ParseError, Content, Link
 
 
 def find_comment_by_id(comments, comment_id):
@@ -41,18 +40,18 @@ class Parser(BaseParser):
     def supports(self, url):
         return "trashbox.ru" in url and "#div_comment_" in url
 
-    def parse(self, string: str) -> Text:
+    def parse(self, string: str) -> Content:
         link_data = self.__parse_topic(string)
 
         comments = self.fetch_comments(link_data['topic_id'])
         comment = find_comment_by_id(comments, link_data['comment_id'])
         if comment is None:
-            raise UnableToParse
+            raise ParseError
 
-        return Text(
+        return Content(
             author=Link(url=f'https://trashbox.ru/users/{comment["login"]}/', text=comment['login']),
             created_at=datetime.fromtimestamp(int(comment['posted'])).astimezone(pytz.timezone("Europe/Moscow")),
-            content=format_content(comment['content']),
+            text=format_content(comment['content']),
             metrics=[f'👍 {comment["votes1"]}', f'👎 {comment["votes0"].lstrip("-")}'],
             backlink=Link(url=string, text=link_data['title']),
         )
@@ -61,13 +60,13 @@ class Parser(BaseParser):
         parsed_url = urlparse(url)
         segments = parsed_url.path.split("/")
         if len(segments) < 3 or not url.startswith("https://trashbox.ru"):
-            raise UnableToParse
+            raise ParseError
 
         topic_id = segments[2]
 
         frag_parts = parsed_url.fragment.split("_")
         if len(frag_parts) < 3:
-            raise UnableToParse
+            raise ParseError
 
         comment_id = frag_parts[2]
 
@@ -77,7 +76,7 @@ class Parser(BaseParser):
         title_match = re.findall(r'<!\[CDATA\[(.*?)]]>', body)
 
         if not topic_match or not title_match:
-            raise UnableToParse('Failed to parse topic')
+            raise ParseError('Failed to parse topic')
 
         return {
             'topic_id': topic_match.group(1),
@@ -93,4 +92,4 @@ class Parser(BaseParser):
         if response.status_code == 200:
             return response.text
         else:
-            raise UnableToParse
+            raise ParseError

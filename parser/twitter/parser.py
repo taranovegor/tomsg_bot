@@ -4,8 +4,15 @@ from urllib.parse import unquote
 
 import requests
 
-from core.parser import Parser as BaseParser, Entity, Text, Video, UnableToParse, Link
-from parser.instagram.meta import HTMLMetaExtractor
+from core import (
+    Parser as BaseParser,
+    Entity,
+    Content,
+    Video,
+    ParseError,
+    Link,
+    HTMLMetaExtractor,
+)
 
 
 class Parser(BaseParser):
@@ -21,7 +28,7 @@ class Parser(BaseParser):
     def parse(self, url: str) -> Entity:
         match = self.URL_REGEX.search(url)
         if not match:
-            raise UnableToParse('Unsupported url')
+            raise ParseError('Unsupported url')
 
         username = match.group('username')
         status_id = match.group('status_id')
@@ -31,7 +38,7 @@ class Parser(BaseParser):
             headers={'User-Agent': self.user_agent},
         )
         if response.status_code != 200:
-            raise UnableToParse('Unhandled response error')
+            raise ParseError('Unhandled response error')
 
         meta = HTMLMetaExtractor(response.text).extract()
 
@@ -46,21 +53,19 @@ class Parser(BaseParser):
         else:
             created_at = None
 
+        media = []
         if 'og:video' in meta:
-            return Video(
+            media.append(Video(
                 resource_url=unquote(meta.get('og:video')),
                 mime_type=meta.get('og:video:type'),
                 thumbnail_url=meta.get('og:image'),
-                backlink=backlink,
-                caption=content,
-                author=author,
-                created_at=created_at,
-            )
+            ))
 
-        return Text(
+        return Content(
             author=author,
             created_at=created_at,
             metrics=[],
-            content=content,
+            text=content,
             backlink=backlink,
+            media=media,
         )

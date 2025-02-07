@@ -1,7 +1,7 @@
 import re
 import requests
 
-from core.parser import Parser as BaseParser, Video, UnableToParse, Link
+from core import Parser as BaseParser, Video, ParseError, Link, Content
 
 
 class Parser(BaseParser):
@@ -19,7 +19,7 @@ class Parser(BaseParser):
             self.FULL_URL_REGEX,
         ])
 
-    def parse(self, url: str) -> Video:
+    def parse(self, url: str) -> Content:
         if self.SHORT_URL_REGEX.match(url):
             response = requests.head(url, headers={'User-Agent': self.user_agent})
             print(response.headers)
@@ -30,11 +30,15 @@ class Parser(BaseParser):
         if long_url_match:
             video_id = long_url_match.group('video_id')
         else:
-            raise UnableToParse('Unprocessable link')
+            raise ParseError('Unprocessable link')
 
-        return Video(
-            resource_url=self.video_resource_url % video_id,
-            mime_type='video/mp4',
-            thumbnail_url=self.thumbnail_resource_url % video_id,
-            backlink=Link(f'https://tiktok.com/@/video/{video_id}', ''),
+        return Content(
+            backlink=Link(f'https://tiktok.com/@/video/{video_id}'),
+            media=[
+                Video(
+                    resource_url=self.video_resource_url % video_id,
+                    mime_type='video/mp4',
+                    thumbnail_url=self.thumbnail_resource_url % video_id,
+                ),
+            ],
         )

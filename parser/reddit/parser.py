@@ -5,8 +5,7 @@ import re
 from typing import Dict, Any
 from datetime import datetime, UTC
 
-from core.parser import Text, Link
-from core.parser import Parser as BaseParser
+from core import Parser as BaseParser, Content
 from parser.reddit.html_adapter import HTMLNodeAdapter, process_node
 
 
@@ -25,7 +24,7 @@ class Parser(BaseParser):
     def supports(self, url: str) -> bool:
         return bool(self.URL_REGEX.match(url))
 
-    def parse(self, string: str) -> Text:
+    def parse(self, string: str) -> Content:
         matches = self.URL_REGEX.match(string)
         if not matches or len(matches.groups()) < 3:
             raise ValueError("Invalid URL")
@@ -77,11 +76,11 @@ class Parser(BaseParser):
 
         return data['data']['children'][0]['data']
 
-    def parse_reddit_comment(self, data: Dict[str, Any]) -> Text:
-        return Text(
+    def parse_reddit_comment(self, data: Dict[str, Any]) -> Content:
+        return Content(
             author=Link(f"https://www.reddit.com/user/{data['author']}/", data['author']),
             created_at=datetime.fromtimestamp(data['created_utc'], UTC),
-            content=self.strip_and_process_tags(data['body_html']),
+            text=self.strip_and_process_tags(data['body_html']),
             metrics=[f'⬆️ {data['ups']}', f'⬇️ {data['downs']}'],
             backlink=Link(f"https://www.reddit.com{data['permalink']}", self.extract_permalink_text(data['permalink'])),
         )
