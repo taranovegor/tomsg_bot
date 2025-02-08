@@ -37,7 +37,7 @@ class InlineResultsFactory:
         return InlineQueryResultArticle(
             id=self._generate_unique_id(),
             title="➡️ Отправить как сообщение",
-            description=re.sub(r"<.*?>", "", text),
+            description=self._strip_tags(text),
             input_message_content=InputTextMessageContent(
                 message_text=self._combine_text_with_link(text, "📄", backlink),
                 parse_mode=ParseMode.HTML,
@@ -74,7 +74,7 @@ class InlineResultsFactory:
             "title": f"➡️ Отправить {media_name[media.type()]}",
             "caption": self._combine_text_with_link(text, emoji, backlink),
             "parse_mode": ParseMode.HTML,
-            "description": text,
+            "description": self._strip_tags(text),
         }
 
         match media.type():
@@ -117,6 +117,10 @@ class InlineResultsFactory:
         if content.metrics:
             body += "  ".join(content.metrics)
         return body.strip()
+
+    @staticmethod
+    def _strip_tags(html: str) -> str:
+        return re.sub(r"<.*?>", "", html)
 
     @staticmethod
     def _format_link_as_html(link: Link) -> str:
