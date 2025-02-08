@@ -27,7 +27,7 @@ class InlineResultsFactory:
         if text:
             results.append(self._generate_message_result(text, backlink))
 
-        if not len(text) > 1024:
+        if content.media and not len(text) > 1024:
             results.extend(self._generate_media_results(content.media, text, backlink))
 
         return results
@@ -46,7 +46,7 @@ class InlineResultsFactory:
         )
 
     def _generate_media_results(
-        self, media_list, text: str, backlink: str
+        self, media_list: list, text: str, backlink: str
     ) -> list[InlineQueryResult]:
         """Generates media results (photos, videos, GIFs) for the given media list."""
         media_results = []
