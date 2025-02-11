@@ -1,54 +1,64 @@
-import requests
 import re
-import json
-
-from datetime import datetime
+import requests
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 from core import Parser as BaseParser, ParseError, Content, Link
 from parser.habr.html_processor import HTMLProcessor
 
 
 class Parser(BaseParser):
+    """Parser for extracting comments from Habr articles."""
+
+    URL_REGEX = re.compile(r"https?://habr\.com/[^/]+/[^/]+/(\d+)/#comment_(\d+)")
+
     def __init__(self, user_agent: str):
+        """Initialize parser with a custom User-Agent."""
         self.user_agent = user_agent
 
-    def supports(self, url):
-        return "habr.com" in url and "#comment_" in url
+    def supports(self, url: str) -> bool:
+        """Check if the given URL matches the expected pattern."""
+        return bool(self.URL_REGEX.match(url))
 
-    def parse(self, string: str) -> Content:
-        match = re.search(r"/articles/(\d+)/#comment_(\d+)", string)
+    def parse(self, url: str) -> Content:
+        """Extract comment data from a given Habr article URL."""
+        match = self.URL_REGEX.search(url)
         if not match:
-            raise ParseError('comment not found')
+            raise ParseError("Invalid URL format")
 
-        article_id = match.group(1)
+        article_id, comment_id = match.groups()
         with ThreadPoolExecutor() as executor:
-            article_future = executor.submit(self.__fetch, f'https://habr.com/kek/v2/articles/{article_id}/')
-            comments_future = executor.submit(self.__fetch,f'https://habr.com/kek/v2/articles/{article_id}/comments/split/guest/')
+            article_future = executor.submit(
+                self._fetch,
+                f"https://habr.com/kek/v2/articles/{article_id}/",
+            )
+            comments_future = executor.submit(
+                self._fetch,
+                f"https://habr.com/kek/v2/articles/{article_id}/comments/split/guest/",
+            )
 
             article = article_future.result()
-            comments = comments_future.result()
+            comments = comments_future.result().get("commentRefs", {})
 
-        article_title = article['titleHtml']
-        comments = comments['commentRefs']
+        if comment_id not in comments:
+            raise ParseError("Specified comment does not exist")
 
-        comment_id = match.group(2)
-        if not comment_id in comments:
-            raise ParseError('comment not found')
         comment = comments[comment_id]
-        author = comment['author']['alias']
+        author = comment["author"]["alias"]
 
         return Content(
-            author=Link(url=f'https://habr.com/ru/users/{author}/', text=author),
-            created_at=datetime.fromisoformat(comment['timePublished']),
-            text=HTMLProcessor().process(comment['message']),
-            metrics=[],
-            backlink=Link(url=f'https://habr.com/ru/articles/{article_id}/#comment_{comment_id}', text=article_title),
+            author=Link(url=f"https://habr.com/ru/users/{author}/", text=author),
+            created_at=datetime.fromisoformat(comment["timePublished"]),
+            text=HTMLProcessor().process(comment["message"]),
+            backlink=Link(
+                f"https://habr.com/ru/articles/{article_id}/#comment_{comment_id}",
+                article["titleHtml"],
+            ),
         )
 
-    def __fetch(self, url):
+    def _fetch(self, url: str) -> dict:
+        """Perform an HTTP GET request and return the JSON response."""
         response = requests.get(url, headers={"User-Agent": self.user_agent})
         if response.status_code == 200:
-            return json.loads(response.text)
-        else:
-            raise ParseError
+            return response.json()
+        raise ParseError(f"Request failed with status code: {response.status_code}")
