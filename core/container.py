@@ -35,15 +35,18 @@ class Container:
 
     def get(self, name):
         """Fetches a service by its name and initializes it if not already initialized."""
+        logging.debug("Fetching service: %s", name)
         service = self.__services.get(name)
         if not service:
             logging.error("Service not defined: %s", name)
             raise KeyError(f"Service not defined: {name}")
         if not service.initialized:
+            logging.info("Initializing service: %s", name)
             try:
                 service.initialize(self)
+                logging.info("Service %s initialized successfully", name)
             except Exception as e:
-                logging.exception("Failed to initialize service %s", name)
+                logging.critical("Failed to initialize service %s", name, exc_info=True)
                 raise RuntimeError(f"Service initialization error for {name}") from e
         return service.instance
 
@@ -51,6 +54,7 @@ class Container:
         """Registers a service by name with its initializer."""
         if name in self.__services:
             logging.warning("Service %s is already registered. Overwriting.", name)
+        logging.debug("Registering service: %s", name)
         self.__services[name] = Service(initializer)
 
 
@@ -66,10 +70,12 @@ class Service:
     def initialize(self, container: Container):
         """Initializes the service and sets its instance."""
         try:
+            logging.debug("Initializing service instance")
             self.instance = self.initializer(container)
             self.initialized = True
+            logging.info("Service initialized successfully")
         except Exception as e:
-            logging.exception("Error initializing service")
+            logging.error("Error initializing service", exc_info=True)
             raise RuntimeError(f"Service initialization failed: {e}") from e
 
 
@@ -115,12 +121,14 @@ def __telegra_inline_handler(container: Container) -> InlineHandler:
 
 def __app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
+    logging.info("Initializing Telegram bot application")
     application = (
         Application.builder().token(container.config.telegram.bot_token).build()
     )
     application.add_handler(
         InlineQueryHandler(container.get("telega_inline_handler").inline_query)
     )
+    logging.info("Starting Telegram bot polling")
     return application.run_polling(allowed_updates=Update.INLINE_QUERY)
 
 
@@ -188,6 +196,7 @@ def __parser_vk(container: Container) -> Parser:
 
 def load_container(config):
     """Loads the container with the provided configuration and registers services."""
+    logging.info("Loading container with services")
     container = Container(config)
 
     container.register("analytics_ga", __analytics_ga)
@@ -205,4 +214,5 @@ def load_container(config):
     container.register("parser__twitter", __parser_twitter)
     container.register("parser__vk", __parser_vk)
 
+    logging.info("Container loaded successfully")
     return container
