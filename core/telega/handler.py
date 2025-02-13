@@ -36,7 +36,9 @@ class InlineHandler:
     async def inline_query(self, update: Update, _):
         """Handles an inline query by validating the query and returning results or errors."""
         query = update.inline_query.query
+        logging.debug("Received inline query: %s", query)
         if not query:
+            logging.debug("Empty query received")
             return
 
         events = Events(update.inline_query.from_user.id)
@@ -48,10 +50,13 @@ class InlineHandler:
 
         await update.inline_query.answer(results=results, cache_time=0)
         await self.analytics.log(events)
+        logging.info("Inline query processed successfully")
 
     def _is_valid_url(self, query: str) -> bool:
         """Checks if the query is a valid URL."""
-        return validators.url(query) or self.URL_REGEX.match(query)
+        is_valid = validators.url(query) or self.URL_REGEX.match(query)
+        logging.debug("URL validation result for '%s': %s", query, is_valid)
+        return is_valid
 
     async def _handle_valid_url(
         self, query: str, events: Events
@@ -59,10 +64,13 @@ class InlineHandler:
         """Handles a valid URL query by parsing it and generating results."""
         domain = urlparse(query).netloc
         events.add(Event("query_received").add("domain", domain))
+        logging.info("Processing valid URL from domain: %s", domain)
         try:
             entity = self.parser.parse(query)
+            logging.debug("Successfully parsed entity for query: %s", query)
             return self.results_factory.create(entity)
         except ParserNotFoundError:
+            logging.warning("Parser not found for domain: %s", domain)
             events.add(
                 Event("error_handled")
                 .add("type", "parser not found")
@@ -75,8 +83,8 @@ class InlineHandler:
                 query,
             )
         except Exception as e:
+            logging.error("Exception while processing query: %s", query, exc_info=True)
             events.add(Event("error_handled").add("type", str(e)))
-            logging.error("An exception occurred: %s", e)
             return self._error_result(
                 "exception",
                 "⚠️ Ошибка обработки",
@@ -88,6 +96,7 @@ class InlineHandler:
         self, query: str, events: Events
     ) -> list[InlineQueryResult]:
         """Handles an invalid URL query by generating an error result."""
+        logging.warning("Invalid URL received: %s", query)
         events.add(Event("error_handled").add("type", "invalid_url"))
         return self._error_result(
             "invalid_url",
@@ -101,6 +110,7 @@ class InlineHandler:
         identifier: str, title: str, description: str, query: str
     ) -> list[InlineQueryResult]:
         """Generates an error result for inline queries."""
+        logging.debug("Generating error result: %s", identifier)
         return [
             InlineQueryResultArticle(
                 id=f"e_{identifier}",

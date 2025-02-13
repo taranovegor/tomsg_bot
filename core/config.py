@@ -1,3 +1,4 @@
+import logging
 import os
 
 
@@ -62,6 +63,7 @@ class Config:
         """Initializes the configuration with environment variables and specific service configurations."""
         self.version = os.getenv("VERSION")
         self.debug = os.getenv("DEBUG") == "true"
+        self.log_level = logging.getLevelName(os.getenv("LOG_LEVEL"))
         self.telegram = TelegramConfig()
         self.instagram = InstagramConfig()
         self.reddit = RedditConfig()

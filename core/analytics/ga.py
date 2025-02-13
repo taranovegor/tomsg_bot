@@ -42,4 +42,8 @@ class GoogleAnalytics(Analytics):
                 ) as response:
                     response.raise_for_status()
             except aiohttp.ClientError as e:
-                logging.error("Error sending data to Google Analytics: %s", e)
+                logging.error(
+                    "Error sending data to Google Analytics: %s",
+                    e,
+                    exc_info=True,
+                )

@@ -1,3 +1,4 @@
+import logging
 import os
 
 from core.config import load_config
@@ -16,8 +17,20 @@ class Instance:
 
 
 def init():
-    """Initializes and returns an Instance with a loaded container and configuration."""
-    return Instance(load_container(load_config()))
+    """Loads configuration, initializes, and returns an Instance."""
+    config = load_config()
+
+    logging.basicConfig(
+        format="[%(levelname)s] %(asctime)s – %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=config.log_level,
+    )
+
+    logging.debug("Initializing application...")
+    container = load_container(config)
+    logging.debug("Container loaded successfully.")
+
+    return Instance(container)
 
 
 def name():
