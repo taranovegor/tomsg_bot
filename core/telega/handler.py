@@ -41,7 +41,7 @@ class InlineHandler:
             logging.debug("Empty query received")
             return
 
-        events = Events(update.inline_query.from_user.id)
+        events = Events(str(update.inline_query.from_user.id))
 
         if self._is_valid_url(query):
             results = await self._handle_valid_url(query, events)
