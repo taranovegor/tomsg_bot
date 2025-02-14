@@ -6,6 +6,7 @@ services:
         restart: on-failure
         environment:
             - DEBUG
+            - LOG_LEVEL
             - TELEGRAM_BOT_TOKEN
             - INSTAGRAM_VIDEO_META_URL
             - INSTAGRAM_VIDEO_STORAGE_URL
