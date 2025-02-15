@@ -7,7 +7,13 @@ from urllib.parse import urlparse
 from html import unescape
 from datetime import datetime
 
-from core import Parser as BaseParser, ParseError, Content, Link
+from core import (
+    Parser as BaseParser,
+    InvalidUrlError,
+    ParseError,
+    Content,
+    Link,
+)
 
 
 def find_comment_by_id(comments, comment_id):
@@ -41,6 +47,9 @@ class Parser(BaseParser):
         return "trashbox.ru" in url and "#div_comment_" in url
 
     def parse(self, string: str) -> Content:
+        if not self.supports(string):
+            raise InvalidUrlError()
+
         link_data = self.__parse_topic(string)
 
         comments = self.fetch_comments(link_data['topic_id'])

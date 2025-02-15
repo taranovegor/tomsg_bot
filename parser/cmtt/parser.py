@@ -4,7 +4,13 @@ import json
 
 from datetime import datetime
 
-from core import Parser as BaseParser, ParseError, Content, Link
+from core import (
+    Parser as BaseParser,
+    InvalidUrlError,
+    ParseError,
+    Content,
+    Link,
+)
 
 
 class Parser(BaseParser):
@@ -20,7 +26,7 @@ class Parser(BaseParser):
     def parse(self, string: str) -> Content:
         match = self.URL_REGEX.search(string)
         if not match:
-            raise ParseError('unsupported scheme')
+            raise InvalidUrlError()
 
         domain = match.group('domain')
         comment_id = int(match.group('comment_id'))

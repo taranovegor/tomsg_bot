@@ -6,6 +6,7 @@ from core import (
     Parser as BaseParser,
     Video,
     Content,
+    InvalidUrlError,
     ParseError,
     Link,
     HTMLMetaExtractor,
@@ -27,7 +28,7 @@ class Parser(BaseParser):
     def parse(self, url: str) -> Content:
         match = self.URL_REGEX.search(url)
         if not match:
-            raise ParseError('Unsupported url')
+            raise InvalidUrlError()
 
         c_id = match.group('id')
         c_type = match.group('type')

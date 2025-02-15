@@ -7,6 +7,7 @@ from .parser.entity import (
     Content,
 )
 from .parser.exception import (
+    InvalidUrlError,
     ParserNotFoundError,
     ParseError,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "Video",
     "GIF",
     "Content",
+    "InvalidUrlError",
     "ParserNotFoundError",
     "ParseError",
     "HTMLMetaExtractor",
