@@ -71,7 +71,9 @@ class Parser(BaseParser):
             "User-Agent": self.user_agent
         }
 
-        response = requests.get(api_url, headers=headers)
+        response = requests.get(api_url, headers=headers, cookies={
+            'reddit_session': access_token,
+        })
         if response.status_code != 200:
             raise Exception(f"Failed to fetch data: {response.status_code} {response.text}")
 
