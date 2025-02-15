@@ -1,7 +1,13 @@
 import re
 import requests
 
-from core import Parser as BaseParser, Video, ParseError, Link, Content
+from core import (
+    Parser as BaseParser,
+    InvalidUrlError,
+    Video,
+    Link,
+    Content,
+)
 
 
 class Parser(BaseParser):
@@ -30,7 +36,7 @@ class Parser(BaseParser):
         if long_url_match:
             video_id = long_url_match.group('video_id')
         else:
-            raise ParseError('Unprocessable link')
+            raise InvalidUrlError()
 
         return Content(
             backlink=Link(f'https://tiktok.com/@/video/{video_id}'),

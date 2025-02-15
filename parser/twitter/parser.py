@@ -8,6 +8,7 @@ from core import (
     Entity,
     Content,
     Video,
+    InvalidUrlError,
     ParseError,
     Link,
     Photo,
@@ -34,7 +35,7 @@ class Parser(BaseParser):
         """Parses the provided Twitter URL and returns an Entity representing the tweet."""
         match = self.URL_REGEX.search(url)
         if not match:
-            raise ParseError("Unsupported url")
+            raise InvalidUrlError()
 
         status_id = match.group("status_id")
 

@@ -10,7 +10,7 @@ from telegram import (
     InlineQueryResultArticle,
 )
 
-from core import Parser, ParserNotFoundError
+from core import Parser, InvalidUrlError, ParserNotFoundError
 from core.analytics.analytics import Analytics, Events, Event
 from core.telega.inline import InlineResultsFactory
 
@@ -62,19 +62,21 @@ class InlineHandler:
         self, query: str, events: Events
     ) -> list[InlineQueryResult]:
         """Handles a valid URL query by parsing it and generating results."""
-        domain = urlparse(query).netloc
-        events.add(Event("query_received").add("domain", domain))
-        logging.info("Processing valid URL from domain: %s", domain)
+        hostname = urlparse(query).netloc
+
+        events.add(Event("page_view").add("page_location", query))
+        logging.info("Processing valid URL from hostname: %s", hostname)
         try:
             entity = self.parser.parse(query)
             logging.debug("Successfully parsed entity for query: %s", query)
             return self.results_factory.create(entity)
-        except ParserNotFoundError:
-            logging.warning("Parser not found for domain: %s", domain)
+        except ParserNotFoundError as e:
+            logging.warning("Parser not found for hostname: %s", hostname)
             events.add(
-                Event("error_handled")
-                .add("type", "parser not found")
-                .add("domain", domain)
+                Event("exception")
+                .add("description", str(e))
+                .add("type", type(e).__name__)
+                .add("hostname", hostname)
             )
             return self._error_result(
                 "no_parser_found",
@@ -84,7 +86,11 @@ class InlineHandler:
             )
         except Exception as e:
             logging.error("Exception while processing query: %s", query, exc_info=True)
-            events.add(Event("error_handled").add("type", str(e)))
+            events.add(
+                Event("exception")
+                .add("description", str(e))
+                .add("type", type(e).__name__)
+            )
             return self._error_result(
                 "exception",
                 "⚠️ Ошибка обработки",
@@ -97,7 +103,12 @@ class InlineHandler:
     ) -> list[InlineQueryResult]:
         """Handles an invalid URL query by generating an error result."""
         logging.warning("Invalid URL received: %s", query)
-        events.add(Event("error_handled").add("type", "invalid_url"))
+        e = InvalidUrlError()
+        events.add(
+            Event("exception")
+            .add("description", str(e))
+            .add("type", type(e).__name__)
+        )
         return self._error_result(
             "invalid_url",
             "❌ Невозможно обработать",

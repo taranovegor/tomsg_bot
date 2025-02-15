@@ -5,6 +5,7 @@ import requests
 from core import (
     Parser as BaseParser,
     Video,
+    InvalidUrlError,
     ParseError,
     Link,
     Content,
@@ -28,7 +29,7 @@ class Parser(BaseParser):
 
     def parse(self, url: str) -> Content:
         if not self.supports(url):
-            raise ParseError('Unsupported url')
+            raise InvalidUrlError()
 
         response = requests.get(url, headers={'User-Agent': self.user_agent})
         if response.status_code != 200:

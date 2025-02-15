@@ -29,7 +29,11 @@ class GoogleAnalytics(Analytics):
             ),
         }
 
-        logging.debug("Sending data to Google Analytics: measurement_id=%s, payload=%s", self.measurement_id, payload)
+        logging.debug(
+            "Sending data to Google Analytics: measurement_id=%s, payload=%s",
+            self.measurement_id,
+            payload,
+        )
 
         url = f"https://www.google-analytics.com/mp/collect?measurement_id={self.measurement_id}&api_secret={self.secret}"
         async with aiohttp.ClientSession() as session:
@@ -43,7 +47,10 @@ class GoogleAnalytics(Analytics):
                     },
                 ) as response:
                     response.raise_for_status()
-                    logging.debug("Successfully sent data to Google Analytics. Status: %d", response.status)
+                    logging.debug(
+                        "Successfully sent data to Google Analytics. Status: %d",
+                        response.status,
+                    )
             except aiohttp.ClientError as e:
                 logging.error(
                     "Error sending data to Google Analytics: %s",

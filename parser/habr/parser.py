@@ -3,7 +3,13 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from core import Parser as BaseParser, ParseError, Content, Link
+from core import (
+    Parser as BaseParser,
+    InvalidUrlError,
+    ParseError,
+    Content,
+    Link,
+)
 from parser.habr.html_processor import HTMLProcessor
 
 
@@ -24,7 +30,7 @@ class Parser(BaseParser):
         """Extract comment data from a given Habr article URL."""
         match = self.URL_REGEX.search(url)
         if not match:
-            raise ParseError("Invalid URL format")
+            raise InvalidUrlError()
 
         article_id, comment_id = match.groups()
         with ThreadPoolExecutor() as executor:

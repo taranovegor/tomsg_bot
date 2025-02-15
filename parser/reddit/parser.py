@@ -5,7 +5,12 @@ import re
 from typing import Dict, Any
 from datetime import datetime, UTC
 
-from core import Parser as BaseParser, Content
+from core import (
+    Parser as BaseParser,
+    Content,
+    Link,
+    InvalidUrlError,
+)
 from parser.reddit.html_adapter import HTMLNodeAdapter, process_node
 
 
@@ -27,7 +32,7 @@ class Parser(BaseParser):
     def parse(self, string: str) -> Content:
         matches = self.URL_REGEX.match(string)
         if not matches or len(matches.groups()) < 3:
-            raise ValueError("Invalid URL")
+            raise InvalidUrlError()
 
         access_token = self.get_auth_token()
         comment_id = matches[3]
