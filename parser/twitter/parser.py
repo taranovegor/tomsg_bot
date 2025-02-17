@@ -19,7 +19,7 @@ class Parser(BaseParser):
     """Parser for Twitter URLs to extract tweet information."""
 
     URL_REGEX = re.compile(
-        r"https?://(?:x\.com|twitter\.com)/"
+            r"https?://(?:x\.com|twitter\.com|fxtwitter.com|fixupx.com)/"
         r"(?P<username>[^/]+)/status/(?P<status_id>\d+)"
     )
 
