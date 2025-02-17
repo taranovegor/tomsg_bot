@@ -29,13 +29,13 @@ class Event(Dict[str, Any]):
 class Events(List[Event]):
     """Represents a collection of events associated with a user."""
 
-    def __init__(self, user_id: str):
+    def __init__(self, user_id: int):
         """Initializes the events collection with a user ID and timestamp."""
         super().__init__()
         self.user_id = user_id
         self.created_at = self.__now_in_ms()
 
-    def get_user_id(self) -> str:
+    def get_user_id(self) -> int:
         """Returns the user ID associated with the events."""
         return self.user_id
 

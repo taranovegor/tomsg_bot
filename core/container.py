@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 
@@ -86,6 +87,9 @@ def __analytics_ga(container: Container) -> Analytics:
         config.measurement_id,
         config.secret,
         f"{os.name}:{app.name()}:{app.version()}",
+        lambda x: hashlib.sha256(
+            (str(x) + config.user_identifier_salt).encode()
+        ).hexdigest(),
     )
 
 

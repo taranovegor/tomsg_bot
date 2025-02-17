@@ -18,4 +18,5 @@ services:
             - TIKTOK_THUMBNAIL_RESOURCE_URL
             - GA_MEASUREMENT_ID
             - GA_SECRET
+            - GA_UID_SALT
             - VK_THUMBNAIL_URL

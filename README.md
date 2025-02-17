@@ -44,4 +44,5 @@ make start
 | `TIKTOK_THUMBNAIL_RESOURCE_URL` | URL template for accessing TikTok video thumbnails, with %s as a placeholder for the video ID.                                              |
 | `GA_MEASUREMENT_ID`             | Unique identifier for the Google Analytics property used to track and measure app activity.                                                 |
 | `GA_SECRET`                     | Secret key used for authenticating requests to Google Analytics API, ensuring secure data handling.                                         |
+| `GA_UID_SALT`                   | The salt used for securely hashing user and client identifiers before sending to Google Analytics.                                          |
 | `VK_THUMBNAIL_URL`              | Static URL for VK clips thumbnails used in the application.                                                                                 |
