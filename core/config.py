@@ -46,6 +46,7 @@ class GoogleAnalyticsConfig:
         """Initializes with the GA measurement ID and secret from environment variables."""
         self.measurement_id = os.getenv("GA_MEASUREMENT_ID")
         self.secret = os.getenv("GA_SECRET")
+        self.user_identifier_salt = os.getenv("GA_UID_SALT")
 
 
 class VKConfig:

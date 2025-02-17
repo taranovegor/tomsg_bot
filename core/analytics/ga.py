@@ -5,19 +5,29 @@ from core.analytics.analytics import Analytics, Events
 
 
 class GoogleAnalytics(Analytics):
-    """A class for logging events to Google Analytics via Measurement Protocol."""
+    """
+    A class for logging events to Google Analytics via Measurement Protocol.
+    """
 
-    def __init__(self, measurement_id: str, secret: str, user_agent: str) -> None:
-        """Initializes the GoogleAnalytics instance with measurement ID, secret, and user agent."""
+    def __init__(
+        self,
+        measurement_id: str,
+        secret: str,
+        user_agent: str,
+        mask_identifier: lambda: str,
+    ) -> None:
+        """Initializes the GA instance."""
         self.measurement_id = measurement_id
         self.secret = secret
         self.user_agent = user_agent
+        self.mask_identifier = mask_identifier
 
     async def log(self, events: Events) -> None:
-        """Logs events to Google Analytics asynchronously."""
+        """Logs events to GA asynchronously."""
+        user_id = self.mask_identifier(events.get_user_id())
         payload = {
-            "user_id": events.get_user_id(),
-            "client_id": events.get_user_id(),
+            "user_id": user_id,
+            "client_id": user_id,
             "events": list(
                 map(
                     lambda ev: {
@@ -30,12 +40,16 @@ class GoogleAnalytics(Analytics):
         }
 
         logging.debug(
-            "Sending data to Google Analytics: measurement_id=%s, payload=%s",
+            "Sending data to GA: measurement_id=%s, payload=%s",
             self.measurement_id,
             payload,
         )
 
-        url = f"https://www.google-analytics.com/mp/collect?measurement_id={self.measurement_id}&api_secret={self.secret}"
+        url = (
+            f"https://www.google-analytics.com/mp/collect"
+            f"?measurement_id={self.measurement_id}"
+            f"&api_secret={self.secret}"
+        )
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(
@@ -48,12 +62,12 @@ class GoogleAnalytics(Analytics):
                 ) as response:
                     response.raise_for_status()
                     logging.debug(
-                        "Successfully sent data to Google Analytics. Status: %d",
+                        "Successfully sent data to GA. Status: %d",
                         response.status,
                     )
             except aiohttp.ClientError as e:
                 logging.error(
-                    "Error sending data to Google Analytics: %s",
+                    "Error sending data to GA: %s",
                     e,
                     exc_info=True,
                 )
