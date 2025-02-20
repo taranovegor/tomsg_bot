@@ -20,3 +20,4 @@ services:
             - GA_SECRET
             - GA_UID_SALT
             - VK_THUMBNAIL_URL
+            - YOUTUBE_API_KEY

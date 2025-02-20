@@ -11,6 +11,7 @@ from parser import (
     trashbox,
     twitter,
     vk,
+    youtube,
 )
 
 from telegram import Update
@@ -105,6 +106,7 @@ def __parser_delegating_parser(container: Container) -> Parser:
             container.get("parser__trashbox"),
             container.get("parser__twitter"),
             container.get("parser__vk"),
+            container.get("parser__youtube"),
         ]
     )
 
@@ -198,6 +200,15 @@ def __parser_vk(container: Container) -> Parser:
     )
 
 
+def _parser_youtube(container: Container) -> Parser:
+    """Initializes and returns a youtube.Parser instance."""
+    config = container.config.youtube
+    return youtube.Parser(
+        config.api_key,
+        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+    )
+
+
 def load_container(config):
     """Loads the container with the provided configuration and registers services."""
     logging.info("Loading container with services")
@@ -217,6 +228,7 @@ def load_container(config):
     container.register("parser__trashbox", __parser_trashbox)
     container.register("parser__twitter", __parser_twitter)
     container.register("parser__vk", __parser_vk)
+    container.register("parser__youtube", _parser_youtube)
 
     logging.info("Container loaded successfully")
     return container

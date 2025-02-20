@@ -46,3 +46,4 @@ make start
 | `GA_SECRET`                     | Secret key used for authenticating requests to Google Analytics API, ensuring secure data handling.                                         |
 | `GA_UID_SALT`                   | The salt used for securely hashing user and client identifiers before sending to Google Analytics.                                          |
 | `VK_THUMBNAIL_URL`              | Static URL for VK clips thumbnails used in the application.                                                                                 |
+| `YOUTUBE_API_KEY`               | API key for accessing the YouTube Data API, used to retrieve video information.                                                             |
