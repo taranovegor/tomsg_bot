@@ -57,6 +57,14 @@ class VKConfig:
         self.thumbnail_url = os.getenv("VK_THUMBNAIL_URL")
 
 
+class YouTubeConfig:
+    """Holds the configuration for YouTube-related settings."""
+
+    def __init__(self):
+        """Initializes with YouTube configuration from env variables."""
+        self.api_key = os.getenv("YOUTUBE_API_KEY")
+
+
 class Config:
     """Holds the entire configuration for all services."""
 
@@ -71,6 +79,7 @@ class Config:
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
         self.vk = VKConfig()
+        self.youtube = YouTubeConfig()
 
 
 def load_config():
