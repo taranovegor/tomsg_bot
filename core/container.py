@@ -106,7 +106,8 @@ def __parser_delegating_parser(container: Container) -> Parser:
             container.get("parser__trashbox"),
             container.get("parser__twitter"),
             container.get("parser__vk"),
-            container.get("parser__youtube"),
+            container.get("parser__youtube_comments"),
+            container.get("parser__youtube_shorts"),
         ]
     )
 
@@ -200,13 +201,18 @@ def __parser_vk(container: Container) -> Parser:
     )
 
 
-def _parser_youtube(container: Container) -> Parser:
+def _parser_youtube_comments(container: Container) -> Parser:
     """Initializes and returns a youtube.Parser instance."""
     config = container.config.youtube
-    return youtube.Parser(
+    return youtube.CommentsParser(
         config.api_key,
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
     )
+
+
+def _parser_youtube_shorts(_) -> Parser:
+    """Initializes and returns a youtube.Parser instance."""
+    return youtube.ShortsParser()
 
 
 def load_container(config):
@@ -228,7 +234,8 @@ def load_container(config):
     container.register("parser__trashbox", __parser_trashbox)
     container.register("parser__twitter", __parser_twitter)
     container.register("parser__vk", __parser_vk)
-    container.register("parser__youtube", _parser_youtube)
+    container.register("parser__youtube_comments", _parser_youtube_comments)
+    container.register("parser__youtube_shorts", _parser_youtube_shorts)
 
     logging.info("Container loaded successfully")
     return container

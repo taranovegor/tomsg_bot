@@ -1,3 +1,7 @@
-from .parser import Parser
+from .comments_parser import Parser as CommentsParser
+from .shorts_parser import Parser as ShortsParser
 
-__all__ = ["Parser"]
+__all__ = [
+    "CommentsParser",
+    "ShortsParser",
+]

@@ -59,7 +59,7 @@ class Parser(BaseParser):
         video_id = matches.group("video_id")
         backlink = Link(f"https://youtu.be/watch?v={video_id}&lc={comment_id}")
         author = Link(item["authorChannelUrl"], item["authorDisplayName"])
-        metrics = [f"❤️ {item['likeCount']}"] if "likeCount" in item else None
+        metrics = [f"👍 {item['likeCount']}"] if "likeCount" in item else None
 
         return Content(
             backlink=backlink,

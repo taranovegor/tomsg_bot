@@ -2,7 +2,7 @@ name: Build and Publish
 
 on:
     push:
-        branches: ['master']
+        branches: ['integration/youtube']
     release:
         types: ['published']
 
@@ -28,14 +28,6 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Define Docker Image Tags
-              run: |
-                  if [ "${{ github.event_name }}" == "release" ]; then
-                      echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-                  else
-                      echo "version=stage" >> $GITHUB_ENV
-                  fi
-
             - name: Build and Push Multi-Platform Docker Image
               uses: docker/build-push-action@v5
               with:
@@ -43,6 +35,6 @@ jobs:
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
                   push: true
-                  tags: taranovegor/tomsg_bot:latest,taranovegor/tomsg_bot:${{ env.version }}
+                  tags: taranovegor/tomsg_bot:yt-shorts
                   platforms: linux/amd64,linux/arm64
-                  build-args: VERSION=${{ env.version }}
+                  build-args: VERSION=yt-shorts
