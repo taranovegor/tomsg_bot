@@ -16,7 +16,7 @@ from parser.habr.html_processor import HTMLProcessor
 class Parser(BaseParser):
     """Parser for extracting comments from Habr articles."""
 
-    URL_REGEX = re.compile(r"https?://habr\.com/[^/]+/[^/]+/(\d+)/#comment_(\d+)")
+    URL_REGEX = re.compile(r"^https?://habr\.com/.*/(\d+).*#comment_(\d+)$")
 
     def __init__(self, user_agent: str):
         """Initialize parser with a custom User-Agent."""
