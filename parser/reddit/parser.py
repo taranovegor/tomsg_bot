@@ -15,7 +15,12 @@ from parser.reddit.html_adapter import HTMLNodeAdapter, process_node
 
 
 class Parser(BaseParser):
-    URL_REGEX = re.compile(
+    SHORT_URL_REGEX = re.compile(
+        r"https?://(?:www\.)?reddit\.com"
+        r"/r/(?P<subreddit>[a-zA-Z0-9_]+)"
+        r"/s/(?P<short_id>[a-zA-Z0-9]+)"
+    )
+    COMMENT_URL_REGEX = re.compile(
         r'^https://www\.reddit\.com/r/([a-zA-Z0-9_]+)/comments/([a-zA-Z0-9_]+)'
         r'(?:/[a-zA-Z0-9_%]+)?(?:/([a-zA-Z0-9_%]+))?/?(?:\?.*)?$'
     )
@@ -27,14 +32,24 @@ class Parser(BaseParser):
         self.cache = {}
 
     def supports(self, url: str) -> bool:
-        return bool(self.URL_REGEX.match(url))
+        return any(pattern.match(url) for pattern in [
+            self.SHORT_URL_REGEX,
+            self.COMMENT_URL_REGEX,
+        ])
 
-    def parse(self, string: str) -> Content:
-        matches = self.URL_REGEX.match(string)
+    def parse(self, url: str) -> Content:
+        access_token = self.get_auth_token()
+
+        if self.SHORT_URL_REGEX.match(url):
+            url = requests.get(url, headers={
+                "Authorization": f"Bearer {access_token}",
+                "User-Agent": self.user_agent,
+            }, allow_redirects=True).url
+
+        matches = self.COMMENT_URL_REGEX.match(url)
         if not matches or len(matches.groups()) < 3:
             raise InvalidUrlError()
 
-        access_token = self.get_auth_token()
         comment_id = matches[3]
 
         data = self.fetch_reddit_comment(comment_id, access_token)
