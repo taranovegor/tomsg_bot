@@ -9,18 +9,17 @@ from core import (
     InvalidUrlError,
     ParseError,
     Link,
-    HTMLMetaExtractor,
 )
+from .cipher import Cipher
 
 
 class Parser(BaseParser):
-    URL_REGEX = re.compile(r'^https?://(?:www\.)?instagram\.com/(?P<type>reels?)/(?P<id>[\w-]+)/?.*')
+    URL_REGEX = re.compile(r'^https?://(?:www\.)?instagram\.com/reels?/[\w-]+/?.*')
 
-    def __init__(self, video_resource_url: str, video_storage_url: str, thumbnail_url: str, user_agent: str):
-        self.video_resource_url = video_resource_url
-        self.video_storage_url = video_storage_url
-        self.thumbnail_url = thumbnail_url
+    def __init__(self, parser_url: str, user_agent: str, cipher: Cipher):
+        self.parser_url = parser_url
         self.user_agent = user_agent
+        self.cipher = cipher
 
     def supports(self, url: str) -> bool:
         return bool(self.URL_REGEX.match(url))
@@ -30,24 +29,32 @@ class Parser(BaseParser):
         if not match:
             raise InvalidUrlError()
 
-        c_id = match.group('id')
-        c_type = match.group('type')
-
-        response = requests.get(self.video_resource_url.format(c_type, c_id), headers={'User-Agent': self.user_agent})
+        response = requests.get(self.parser_url, headers={
+            'User-Agent': self.user_agent,
+            'Url': self.cipher.encrypt(url),
+        })
         if response.status_code != 200:
             raise ParseError('Unhandled response error')
 
-        meta = HTMLMetaExtractor(response.text).extract()
-        if 'og:video' not in meta:
-            raise ParseError('Failed to retrieve video resource')
+        try:
+            data = response.json()
+
+            if not data.get('p', False):
+                raise ParseError('Invalid response: p is not True')
+
+            video_data = data['video'][0]
+            video_url = video_data['video']
+            thumbnail_url = video_data['thumbnail']
+        except (KeyError, IndexError, AttributeError) as e:
+            raise ParseError(f'Failed to parse response: {str(e)}')
 
         return Content(
-            backlink=Link(meta.get('og:url')),
+            backlink=Link(url),
             media=[
                 Video(
-                    resource_url=self.video_storage_url.format(meta.get('og:video')),
+                    resource_url=video_url,
                     mime_type='video/mp4',
-                    thumbnail_url=self.thumbnail_url,
+                    thumbnail_url=thumbnail_url,
                 ),
             ]
         )

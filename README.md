@@ -34,9 +34,8 @@ make start
 | `DEBUG`                         | Indicates whether the application is running in debug mode (`true/false`).                                                                  |
 | `LOG_LEVEL`                     | Defines the logging level for the application. Possible values: `CRITICAL`, `FATAL`, `ERROR`, `WARN`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`. |
 | `TELEGRAM_BOT_TOKEN`            | Telegram bot token required for the bot to operate.                                                                                         |
-| `INSTAGRAM_VIDEO_META_URL`      | URL template for retrieving Instagram video metadata, with `{0}` and `{1}` as placeholders.                                                 |
-| `INSTAGRAM_VIDEO_STORAGE_URL`   | URL template for accessing stored Instagram videos, with `{0}` as a placeholder.                                                            |
-| `INSTAGRAM_THUMBNAIL_URL`       | Static URL for Instagram video thumbnails used in the application.                                                                          |
+| `INSTAGRAM_VIDEO_PARSER_URL`    | Instagram video parser address.                                                                                                             |
+| `INSTAGRAM_ENCRYPTION_KEY`      | Encryption key for sensitive data.                                                                                                          |
 | `REDDIT_CLIENT_ID`              | Reddit API Client ID used for API authentication.                                                                                           |
 | `REDDIT_CLIENT_SECRET`          | Reddit API Client Secret for secure API access.                                                                                             |
 | `REDDIT_OWNER_USERNAME`         | Owner's Reddit username for identification purposes in operations.                                                                          |

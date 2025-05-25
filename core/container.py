@@ -151,11 +151,13 @@ def __parser_habr(_: Container) -> Parser:
 def __parser_instagram(container: Container) -> Parser:
     """Initializes and returns an instagram.Parser instance."""
     config = container.config.instagram
+
+    cipher = instagram.Cipher(config.encryption_key)
+
     return instagram.Parser(
-        config.video_meta_url,
-        config.video_storage_url,
-        config.thumbnail_url,
+        config.parser_url,
         f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        cipher,
     )
 
 
