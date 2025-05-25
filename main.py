@@ -2,7 +2,7 @@ from core import app
 
 
 def main():
-    print(f'🐓 {app.name()}! version: {app.version()}')
+    print(f'🐓 {app.name()}! version: {app.version()}', flush=True)
     app.init().run()
 
 
