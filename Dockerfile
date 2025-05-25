@@ -1,13 +1,22 @@
-FROM python:3.13-alpine
+FROM python:3.13-alpine as builder
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN apk add --no-cache binutils
 
-ARG VERSION="undefined"
-ENV VERSION=${VERSION}
+COPY requirements.txt .
+RUN pip install --no-cache-dir pyinstaller
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "-u", "main.py"]
+RUN pyinstaller --onefile --name tomsg_bot --clean --noconfirm main.py
+
+FROM alpine:3.21
+
+COPY --from=builder /app/dist/tomsg_bot /
+
+ARG VERSION="undefined@Dockerfile"
+ENV VERSION=${VERSION}
+
+ENTRYPOINT ["/tomsg_bot"]
