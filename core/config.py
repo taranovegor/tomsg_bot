@@ -15,9 +15,8 @@ class InstagramConfig:
 
     def __init__(self):
         """Initializes with Instagram video and thumbnail URLs from environment variables."""
-        self.video_meta_url = os.getenv("INSTAGRAM_VIDEO_META_URL")
-        self.video_storage_url = os.getenv("INSTAGRAM_VIDEO_STORAGE_URL")
-        self.thumbnail_url = os.getenv("INSTAGRAM_THUMBNAIL_URL")
+        self.parser_url = os.getenv("INSTAGRAM_VIDEO_PARSER_URL")
+        self.encryption_key = os.getenv("INSTAGRAM_ENCRYPTION_KEY")
 
 
 class RedditConfig:
