@@ -16,11 +16,12 @@ from core import (
 class Parser(BaseParser):
     VK_URL_REGEX = re.compile(
         r"https?://vk\.com/"
-        r"(?:clips/[^?]+?\?z=|clips/)?"
-        r"clip(?P<owner_id>-?\d+)_(?P<clip_id>\d+)"
+        r"(?P<media_type>clip|video)"
+        r"(?P<owner_id>-?\d+)_(?P<id>\d+)"
     )
     OK_URL_REGEX = re.compile(
-        r"https?://ok\.ru/clip"
+        r"https?://ok\.ru/"
+        r"(?P<media_type>clip)"
         r"\?owner_id=(?P<owner_id>-?\d+)"
         r"&clip_id=(?P<clip_id>\d+)"
     )
@@ -42,13 +43,11 @@ class Parser(BaseParser):
         if not self.supports(url):
             raise InvalidUrlError()
 
-        if self.VK_URL_REGEX.match(url):
-            matches = self.VK_URL_REGEX.search(url)
-            url = (
-                f"https://vk.com"
-                f"/clip{matches.group('owner_id')}"
-                f"_{matches.group('clip_id')}"
-            )
+        match = self.VK_URL_REGEX.match(url) or self.OK_URL_REGEX.match(url)
+        if not match:
+            raise InvalidUrlError()
+
+        media_type = match.group("media_type")
 
         response = requests.get(url, headers={"User-Agent": self.user_agent})
         if response.status_code != 200:
@@ -58,6 +57,18 @@ class Parser(BaseParser):
             )
 
         meta = HTMLMetaExtractor(response.text).extract()
+
+        if media_type == "video":
+            duration_str = meta.get("video:duration")
+            if duration_str is None:
+                raise ParseError("Missing 'video:duration' metadata")
+            try:
+                duration = int(duration_str)
+            except ValueError:
+                raise ParseError(f"Invalid 'video:duration' value: {duration_str}")
+            if duration >= 60:
+                raise ParseError(f"Video duration is {duration} seconds, expected less than 60 for clips")
+
         if "og:video" not in meta:
             raise ParseError(
                 "Missing 'og:video' metadata, unable to retrieve video URL"
