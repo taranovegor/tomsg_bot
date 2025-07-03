@@ -40,55 +40,50 @@ class Parser(BaseParser):
         status_id = match.group("status_id")
 
         response = requests.get(
-            f"https://api.fxtwitter.com/status/{status_id}",
+            f"https://api.vxtwitter.com/status/{status_id}",
             headers={"User-Agent": self.user_agent},
         )
         if response.status_code != 200:
             raise ParseError("Unhandled response error")
 
-        json = response.json()
-        if json["code"] != 200:
-            raise ParseError("Unhandled response error")
-
-        tweet = json["tweet"]
+        tweet = response.json()
 
         # Create author link and clean up author name
         author = Link(
-            f"https://x.com/{tweet['author']['screen_name']}",
-            re.sub(r"\s*\(@[^)]+\)", "", tweet["author"]["name"]),
+            f"https://x.com/{tweet["user_screen_name"]}",
+            re.sub(r"\s*\(@[^)]+\)", "", tweet["user_name"]),
         )
 
         content = tweet["text"] if "text" in tweet else ""
         metrics = [
-            f"💬 {self.format_counter(tweet['replies'])}",
-            f"🔁 {self.format_counter(tweet['retweets'])}",
-            f"❤️ {self.format_counter(tweet['likes'])}",
-            f"📊 {self.format_counter(tweet['views'])}",
+            f"💬 {self.format_counter(tweet["replies"])}",
+            f"🔁 {self.format_counter(tweet["retweets"])}",
+            f"❤️ {self.format_counter(tweet["likes"])}",
         ]
 
         created_at = datetime.strptime(
-            tweet["created_at"],
+            tweet["date"],
             "%a %b %d %H:%M:%S %z %Y",
         )
 
         backlink = Link(
-            f"https://x.com/{tweet['author']['screen_name']}/status/{status_id}"
+            f"https://x.com/{tweet["user_screen_name"]}/status/{status_id}"
         )
 
         media = []
-        if "media" in tweet:
-            for item in tweet["media"]["all"]:
-                match item["type"]:
-                    case "photo":
-                        media.append(Photo(resource_url=item["url"]))
-                    case "video" | "gif":
-                        media.append(
-                            Video(
-                                resource_url=item["url"],
-                                mime_type="video/mp4",
-                                thumbnail_url=item["thumbnail_url"],
-                            )
+        for item in tweet["media_extended"]:
+            match item["type"]:
+                case "image" | "photo":
+                    media.append(Photo(resource_url=item["url"]))
+                case "video" | "gif":
+                    media.append(
+                        Video(
+                            resource_url=item["url"],
+                            mime_type="video/mp4",
+                            thumbnail_url=item["thumbnail_url"],
                         )
+                    )
+
 
         return Content(
             author=author,
