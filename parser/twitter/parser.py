@@ -48,7 +48,6 @@ class Parser(BaseParser):
 
         tweet = response.json()
 
-        # Create author link and clean up author name
         author = Link(
             f"https://x.com/{tweet["user_screen_name"]}",
             re.sub(r"\s*\(@[^)]+\)", "", tweet["user_name"]),
@@ -74,7 +73,10 @@ class Parser(BaseParser):
         for item in tweet["media_extended"]:
             match item["type"]:
                 case "image" | "photo":
-                    media.append(Photo(resource_url=item["url"]))
+                    media.append(Photo(
+                        resource_url=item["url"],
+                        thumbnail_url=item["thumbnail_url"],
+                    ))
                 case "video" | "gif":
                     media.append(
                         Video(
@@ -83,7 +85,6 @@ class Parser(BaseParser):
                             thumbnail_url=item["thumbnail_url"],
                         )
                     )
-
 
         return Content(
             author=author,
