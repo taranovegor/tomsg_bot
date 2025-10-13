@@ -232,6 +232,7 @@ def load_container(config):
     container.register("parser__habr", __parser_habr)
     container.register("parser__instagram", __parser_instagram)
     container.register("parser__reddit", __parser_reddit)
+    container.register("__parser_redspecial", __parser_redspecial)
     container.register("parser__tiktok", __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
     container.register("parser__twitter", __parser_twitter)
