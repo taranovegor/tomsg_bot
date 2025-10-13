@@ -7,6 +7,7 @@ from parser import (
     habr,
     instagram,
     reddit,
+    redspecial,
     tiktok,
     trashbox,
     twitter,
@@ -169,6 +170,11 @@ def __parser_reddit(container: Container) -> Parser:
         config.client_secret,
         f"{os.name}:{app.name()}:{app.version()} (by /u/{config.app_owner_username})",
     )
+
+
+def __parser_redspecial(_: Container) -> Parser:
+    """Initializes and returns a redspecial.Parser instance."""
+    return redspecial.Parser(f"{os.name}:{app.name()}:{app.version()}")
 
 
 def __parser_tiktok(container: Container) -> Parser:
