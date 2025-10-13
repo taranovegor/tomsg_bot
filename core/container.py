@@ -103,6 +103,7 @@ def __parser_delegating_parser(container: Container) -> Parser:
             container.get("parser__habr"),
             container.get("parser__instagram"),
             container.get("parser__reddit"),
+            container.get("parser_redspecial"),
             container.get("parser__tiktok"),
             container.get("parser__trashbox"),
             container.get("parser__twitter"),
@@ -232,7 +233,7 @@ def load_container(config):
     container.register("parser__habr", __parser_habr)
     container.register("parser__instagram", __parser_instagram)
     container.register("parser__reddit", __parser_reddit)
-    container.register("__parser_redspecial", __parser_redspecial)
+    container.register("parser_redspecial", __parser_redspecial)
     container.register("parser__tiktok", __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
     container.register("parser__twitter", __parser_twitter)
