@@ -15,7 +15,7 @@ from .cipher import Cipher
 
 
 class Parser(BaseParser):
-    URL_REGEX = re.compile(r'^https?://(?:www\.)?instagram\.com/(p|reels?)/[\w-]+/?.*')
+    URL_REGEX = re.compile(r'^https?://(?:www\.)?instagram\.com/(p|reels?|share)/[\w-]+/?.*')
 
     def __init__(self, parser_url: str, user_agent: str, cipher: Cipher):
         self.parser_url = parser_url
