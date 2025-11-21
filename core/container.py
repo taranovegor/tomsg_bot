@@ -130,9 +130,12 @@ def __telegra_inline_handler(container: Container) -> InlineHandler:
 def __app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
     logging.info("Initializing Telegram bot application")
-    application = (
-        Application.builder().token(container.config.telegram.bot_token).build()
-    )
+    builder = Application.builder()
+    builder.token(container.config.telegram.bot_token)
+    if container.config.telegram.base_url:
+        logging.info(f"Using custom Telegram API base URL: {container.config.telegram.base_url}")
+        builder.base_url(container.config.telegram.base_url)
+    application = builder.build()
     application.add_handler(
         InlineQueryHandler(container.get("telega_inline_handler").inline_query)
     )

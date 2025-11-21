@@ -38,6 +38,7 @@ make start
 | `DEBUG`                         | Indicates whether the application is running in debug mode (`true/false`).                                                                  |
 | `LOG_LEVEL`                     | Defines the logging level for the application. Possible values: `CRITICAL`, `FATAL`, `ERROR`, `WARN`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`. |
 | `TELEGRAM_BOT_TOKEN`            | Telegram bot token required for the bot to operate.                                                                                         |
+| `TELEGRAM_BASE_URL`             | Optional custom Telegram API base URL. Use this if you are running the bot with a self-hosted Telegram API or a proxy.                      |
 | `INSTAGRAM_VIDEO_PARSER_URL`    | Instagram video parser address.                                                                                                             |
 | `INSTAGRAM_ENCRYPTION_KEY`      | Encryption key for sensitive data.                                                                                                          |
 | `REDDIT_CLIENT_ID`              | Reddit API Client ID used for API authentication.                                                                                           |
