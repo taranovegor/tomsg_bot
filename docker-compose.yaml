@@ -8,6 +8,7 @@ services:
             - DEBUG
             - LOG_LEVEL
             - TELEGRAM_BOT_TOKEN
+            - TELEGRAM_BASE_URL
             - INSTAGRAM_VIDEO_PARSER_URL
             - INSTAGRAM_ENCRYPTION_KEY
             - REDDIT_CLIENT_ID

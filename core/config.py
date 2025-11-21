@@ -8,6 +8,7 @@ class TelegramConfig:
     def __init__(self):
         """Initializes with the bot token from the environment variable."""
         self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        self.base_url = os.getenv("TELEGRAM_BASE_URL")
 
 
 class InstagramConfig:
