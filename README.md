@@ -3,7 +3,7 @@ Easily turn comments into messages with this bot
 
 ![GitHub License](https://img.shields.io/github/license/taranovegor/tomsg_bot)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/taranovegor/tomsg_bot/publish.yaml)
-[![Docker Image Version](https://img.shields.io/docker/v/taranovegor/tomsg_bot?logo=docker)](https://hub.docker.com/repository/docker/taranovegor/tomsg_bot)
+[![Docker Image Version](https://img.shields.io/docker/v/taranovegor/tomsg_bot?logo=docker)](https://hub.docker.com/r/taranovegor/tomsg_bot)
 
 ## Set up
 ### Requirements
