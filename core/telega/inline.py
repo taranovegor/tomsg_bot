@@ -15,13 +15,63 @@ from telegram.constants import ParseMode
 from core import Content, Link, Photo, Video, GIF
 
 
+class ContentFormatter:
+    """
+    Helper class responsible for generating and formatting text/html pieces for content.
+
+    This centralises helpers previously defined as static methods on InlineResultsFactory.
+    """
+
+    @staticmethod
+    def generate_text_description(content: Content) -> str:
+        """Generates a text description for the content (including author, date, text, and metrics)."""
+        body = ""
+        if content.author:
+            body += "💁"
+            body += ContentFormatter.format_link_as_html(content.author)
+        if content.created_at:
+            body += ", " if body else ""
+            body += content.created_at.strftime("%d.%m.%y %H:%M %Z")
+        if content.author or content.created_at:
+            body += "\n"
+        if content.text:
+            body += f"{content.text}\n\n"
+        elif content.author or content.created_at:
+            body += "\n"
+        if content.metrics:
+            body += "  ".join(content.metrics)
+        return body.strip()
+
+    @staticmethod
+    def strip_tags(html: str) -> str:
+        return re.sub(r"<.*?>", "", html)
+
+    @staticmethod
+    def format_link_as_html(link: Link) -> str:
+        """Formats a link as an HTML anchor tag."""
+        return (
+            f'<a href="{link.url}">{link.text or link.url}</a>'
+            if link.url
+            else str(link.text)
+        )
+
+    @staticmethod
+    def combine_text_with_link(body: str, emoji: str, backlink: str) -> str:
+        """Combines text with a backlink and emoji."""
+        return f"{body}\n\n{emoji}{backlink}".strip()
+
+
 class InlineResultsFactory:
     """Factory for generating inline query results from content."""
 
+    def __init__(self, formatter: ContentFormatter | None = None):
+        # allow injection for testability; default to ContentFormatter
+        self.formatter = formatter or ContentFormatter()
+
     def create(self, content: Content) -> list[InlineQueryResult]:
         """Creates inline query results for the provided content."""
-        text = self._generate_text_description(content)
-        backlink = self._format_link_as_html(content.backlink)
+        text = self.formatter.generate_text_description(content)
+        backlink = self.formatter.format_link_as_html(content.backlink)
         results = []
 
         if text:
@@ -37,9 +87,9 @@ class InlineResultsFactory:
         return InlineQueryResultArticle(
             id=self._generate_unique_id(),
             title="➡️ Отправить как сообщение",
-            description=self._strip_tags(text),
+            description=self.formatter.strip_tags(text),
             input_message_content=InputTextMessageContent(
-                message_text=self._combine_text_with_link(text, "📄", backlink),
+                message_text=self.formatter.combine_text_with_link(text, "📄", backlink),
                 parse_mode=ParseMode.HTML,
                 link_preview_options=LinkPreviewOptions(is_disabled=True),
             ),
@@ -72,9 +122,9 @@ class InlineResultsFactory:
         common_params = {
             "id": self._generate_unique_id(),
             "title": f"➡️ Отправить {media_name[media.type()]}",
-            "caption": self._combine_text_with_link(text, emoji, backlink),
+            "caption": self.formatter.combine_text_with_link(text, emoji, backlink),
             "parse_mode": ParseMode.HTML,
-            "description": self._strip_tags(text),
+            "description": self.formatter.strip_tags(text),
         }
 
         match media.type():
@@ -97,44 +147,8 @@ class InlineResultsFactory:
                     thumbnail_url=media.thumbnail_url,
                     **common_params,
                 )
-
-    @staticmethod
-    def _generate_text_description(content: Content) -> str:
-        """Generates a text description for the content (including author, date, text, and metrics)."""
-        body = ""
-        if content.author:
-            body += "💁"
-            body += InlineResultsFactory._format_link_as_html(content.author)
-        if content.created_at:
-            body += ", " if body else ""
-            body += content.created_at.strftime("%d.%m.%y %H:%M %Z")
-        if content.author or content.created_at:
-            body += "\n"
-        if content.text:
-            body += f"{content.text}\n\n"
-        elif content.author or content.created_at:
-            body += "\n"
-        if content.metrics:
-            body += "  ".join(content.metrics)
-        return body.strip()
-
-    @staticmethod
-    def _strip_tags(html: str) -> str:
-        return re.sub(r"<.*?>", "", html)
-
-    @staticmethod
-    def _format_link_as_html(link: Link) -> str:
-        """Formats a link as an HTML anchor tag."""
-        return (
-            f'<a href="{link.url}">{link.text or link.url}</a>'
-            if link.url
-            else str(link.text)
-        )
-
-    @staticmethod
-    def _combine_text_with_link(body: str, emoji: str, backlink: str) -> str:
-        """Combines text with a backlink and emoji."""
-        return f"{body}\n\n{emoji}{backlink}".strip()
+            case _:
+                raise ValueError(f"Unsupported media type: {media.type()}")
 
     @staticmethod
     def _generate_unique_id() -> str:

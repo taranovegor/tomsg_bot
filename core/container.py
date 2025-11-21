@@ -16,7 +16,7 @@ from parser import (
 )
 
 from telegram import Update
-from telegram.ext import Application, InlineQueryHandler
+from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
 
 from core import app
 from core import Parser
@@ -24,7 +24,7 @@ from core.analytics.analytics import Analytics
 from core.analytics.ga import GoogleAnalytics
 from core.config import Config
 from core.parser.parser import DelegatingParser
-from core.telega.handler import InlineHandler
+from core.telega.handler import InlineHandler, ChatHandler
 from core.telega.inline import InlineResultsFactory
 
 
@@ -127,6 +127,15 @@ def __telegra_inline_handler(container: Container) -> InlineHandler:
     )
 
 
+def __telega_chat_handler(container: Container) -> ChatHandler:
+    """Initializes and returns a ChatHandler instance."""
+    return ChatHandler(
+        container.get("parser_delegating_parser"),
+        container.get("telega_inline_results_factory"),
+        container.get("analytics_ga"),
+    )
+
+
 def __app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
     logging.info("Initializing Telegram bot application")
@@ -139,8 +148,13 @@ def __app(container: Container) -> None:
     application.add_handler(
         InlineQueryHandler(container.get("telega_inline_handler").inline_query)
     )
+    # handle text messages (excluding bot commands) using ChatHandler
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, container.get("telega_chat_handler").chat_message)
+    )
     logging.info("Starting Telegram bot polling")
-    return application.run_polling(allowed_updates=Update.INLINE_QUERY)
+    # allow both inline queries and regular messages
+    return application.run_polling(allowed_updates=[Update.INLINE_QUERY, Update.MESSAGE])
 
 
 def __parser_cmtt(_: Container) -> Parser:
@@ -230,6 +244,7 @@ def load_container(config):
     container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("telega_inline_results_factory", __telega_inline_results_factory)
     container.register("telega_inline_handler", __telegra_inline_handler)
+    container.register("telega_chat_handler", __telega_chat_handler)
     container.register("app", __app)
 
     container.register("parser__cmtt", __parser_cmtt)
