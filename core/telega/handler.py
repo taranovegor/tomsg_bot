@@ -69,7 +69,7 @@ class InlineHandler:
         try:
             entity = self.parser.parse(query)
             logging.debug("Successfully parsed entity for query: %s", query)
-            return self.results_factory.create(entity)
+            return await self.results_factory.create(entity)
         except ParserNotFoundError as e:
             logging.warning("Parser not found for hostname: %s", hostname)
             events.add(
