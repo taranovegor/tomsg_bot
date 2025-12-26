@@ -1,6 +1,7 @@
 import re
 from uuid import uuid4
-
+import logging
+import aiohttp
 from telegram import (
     InlineQueryResult,
     InlineQueryResultArticle,
@@ -18,8 +19,14 @@ from core import Content, Link, Photo, Video, GIF
 class InlineResultsFactory:
     """Factory for generating inline query results from content."""
 
-    def create(self, content: Content) -> list[InlineQueryResult]:
-        """Creates inline query results for the provided content."""
+    MAX_MEDIA_SIZE = 20 * 1024 * 1024  # 20 MB
+
+    def __init__(self, user_agent: str):
+        """Initializes the parser with a user agent for making requests."""
+        self.user_agent = user_agent
+
+    async def create(self, content: Content) -> list[InlineQueryResult]:
+        """Creates inline query results for the provided content (async to allow HEAD checks)."""
         text = self._generate_text_description(content)
         backlink = self._format_link_as_html(content.backlink)
         results = []
@@ -28,7 +35,7 @@ class InlineResultsFactory:
             results.append(self._generate_message_result(text, backlink))
 
         if content.media and not len(text) > 1024:
-            results.extend(self._generate_media_results(content.media, text, backlink))
+            results.extend(await self._generate_media_results(content.media, text, backlink))
 
         return results
 
@@ -45,7 +52,7 @@ class InlineResultsFactory:
             ),
         )
 
-    def _generate_media_results(
+    async def _generate_media_results(
         self, media_list: list, text: str, backlink: str
     ) -> list[InlineQueryResult]:
         """Generates media results (photos, videos, GIFs) for the given media list."""
@@ -54,6 +61,17 @@ class InlineResultsFactory:
 
         for media in media_list:
             media_type = media.type()
+            if media_type == "video":
+                try:
+                    too_large = await self._is_media_too_large(media.resource_url)
+                except Exception:
+                    logging.exception("Failed to check video size for %s; including by default", media.resource_url)
+                    too_large = False
+
+                if too_large:
+                    logging.info("Skipping video (too large): %s", media.resource_url)
+                    continue
+
             if media_type in emoji_map:
                 media_results.append(
                     self._create_inline_media_result(
@@ -62,6 +80,31 @@ class InlineResultsFactory:
                 )
 
         return media_results
+
+    async def _is_media_too_large(self, url: str) -> bool:
+        """Perform a HEAD request to determine Content-Length. Return True if > MAX_VIDEO_SIZE."""
+        timeout = aiohttp.ClientTimeout(total=5)
+        headers = {"User-Agent": self.user_agent}
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.head(url, headers=headers, allow_redirects=True) as resp:
+                    # Some servers may not support HEAD properly; if 405 try GET with range
+                    if resp.status == 405:
+                        async with session.get(url, headers={**headers, "Range": "bytes=0-0"}, allow_redirects=True) as get_resp:
+                            cl = get_resp.headers.get("Content-Length")
+                    else:
+                        cl = resp.headers.get("Content-Length")
+                    if cl is None:
+                        return False
+                    try:
+                        size = int(cl)
+                        return size > self.MAX_MEDIA_SIZE
+                    except Exception:
+                        logging.exception("Invalid Content-Length header for %s: %s", url, cl)
+                        return False
+        except Exception:
+            logging.exception("Error checking Content-Length for %s", url)
+            return False
 
     def _create_inline_media_result(
         self, media: Video | Photo | GIF, text: str, backlink: str, emoji: str

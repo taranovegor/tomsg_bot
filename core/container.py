@@ -115,7 +115,9 @@ def __parser_delegating_parser(container: Container) -> Parser:
 
 def __telega_inline_results_factory(_: Container) -> InlineResultsFactory:
     """Initializes and returns an InlineResultsFactory instance."""
-    return InlineResultsFactory()
+    return InlineResultsFactory(
+        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+    )
 
 
 def __telegra_inline_handler(container: Container) -> InlineHandler:
