@@ -29,10 +29,12 @@ class Event(Dict[str, Any]):
 class Events(List[Event]):
     """Represents a collection of events associated with a user."""
 
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int, platform: str, handler_type: str):
         """Initializes the events collection with a user ID and timestamp."""
         super().__init__()
         self.user_id = user_id
+        self.platform = platform
+        self.handler_type = handler_type
         self.created_at = self.__now_in_ms()
 
     def get_user_id(self) -> int:
@@ -41,6 +43,8 @@ class Events(List[Event]):
 
     def add(self, e: Event) -> Self:
         """Adds an event to the collection and tracks engagement time."""
+        e.add("platform", self.platform)
+        e.add("handler_type", self.handler_type)
         e.add("engagement_time_msec", self.__now_in_ms() - self.created_at + 1)
         self.append(e)
         return self

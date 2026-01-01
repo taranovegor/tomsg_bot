@@ -1,6 +1,18 @@
+import enum
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
+
+
+class MediaType(str, enum.Enum):
+    """Represents the type of media or content entity."""
+
+    __slots__ = ()
+
+    PHOTO = "photo"
+    VIDEO = "video"
+    GIF = "gif"
+    CONTENT = "content"
 
 
 class Entity(ABC):
@@ -32,7 +44,7 @@ class Photo(Entity):
     @staticmethod
     def type() -> str:
         """Returns the type of the entity as 'photo'."""
-        return "photo"
+        return MediaType.PHOTO
 
 
 @dataclass
@@ -46,7 +58,7 @@ class Video(Entity):
     @staticmethod
     def type() -> str:
         """Returns the type of the entity as 'video'."""
-        return "video"
+        return MediaType.VIDEO
 
 
 @dataclass
@@ -60,7 +72,7 @@ class GIF(Entity):
     @staticmethod
     def type() -> str:
         """Returns the type of the entity as 'gif'."""
-        return "gif"
+        return MediaType.GIF
 
 
 @dataclass
@@ -77,4 +89,4 @@ class Content(Entity):
     @staticmethod
     def type() -> str:
         """Returns the type of the entity as 'content'."""
-        return "content"
+        return MediaType.CONTENT

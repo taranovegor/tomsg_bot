@@ -1,0 +1,79 @@
+import logging
+import ffmpeg
+from pathlib import Path
+from typing import Optional
+import uuid
+import asyncio
+
+from core.files.storage import LocalStorage
+from core.media.entity import VideoMeta
+
+
+class VideoProcessor:
+    """Utilities to probe video info and create a JPEG thumbnail."""
+
+    def __init__(self, storage: LocalStorage):
+        self.storage = storage
+
+    async def process_video(self, video_path: Path) -> VideoMeta:
+        """
+        Probe dimensions and duration, generate and store a JPEG thumbnail, return VideoMeta.
+        """
+        dim_task = asyncio.create_task(self.probe_dimensions(video_path))
+        dur_task = asyncio.create_task(self.probe_duration(video_path))
+
+        width, height = await dim_task
+        duration = await dur_task
+
+        return VideoMeta(
+            width=width,
+            height=height,
+            duration=duration,
+        )
+
+    @staticmethod
+    async def probe_duration(filepath: Path) -> Optional[int]:
+        """
+        Return total duration in seconds (int) or None.
+
+        Prefers per-video-stream duration; falls back to format-level duration.
+        Rounds to nearest second.
+        """
+        try:
+            probe = await asyncio.to_thread(ffmpeg.probe, filepath)
+            streams = probe.get("streams", [])
+            for s in streams:
+                if s.get("codec_type") == "video":
+                    d = s.get("duration")
+                    if d is not None:
+                        try:
+                            return int(round(float(d)))
+                        except Exception:
+                            pass
+            d = probe.get("format", {}).get("duration")
+            if d is not None:
+                try:
+                    return int(round(float(d)))
+                except Exception:
+                    pass
+            return None
+        except Exception:
+            logging.exception("ffprobe failed for %s", filepath)
+            return None
+
+    @staticmethod
+    async def probe_dimensions(filepath: Path) -> tuple[Optional[int], Optional[int]]:
+        """Return (width, height) from a video stream, or (None, None) if unavailable."""
+        try:
+            probe = await asyncio.to_thread(ffmpeg.probe, filepath)
+            streams = probe.get("streams", [])
+            for s in streams:
+                if s.get("codec_type") == "video":
+                    width = s.get("width")
+                    height = s.get("height")
+                    if width is not None and height is not None:
+                        return int(width), int(height)
+            return None, None
+        except Exception:
+            logging.exception("ffprobe failed for %s", filepath)
+            return None, None
