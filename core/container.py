@@ -1,7 +1,15 @@
 import hashlib
 import logging
 import os
+import tempfile
+from pathlib import Path
 
+from core.files.downloader import MediaDownloader
+from core.files.resolver import FileResolver
+from core.files.storage import LocalStorage
+from core.files.validator import RemoteFileValidator
+from core.media.processor import VideoProcessor
+from core.telega.renderer import MessageRenderer
 from parser import (
     cmtt,
     habr,
@@ -15,8 +23,7 @@ from parser import (
     youtube,
 )
 
-from telegram import Update
-from telegram.ext import Application, InlineQueryHandler
+from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
 
 from core import app
 from core import Parser
@@ -24,8 +31,8 @@ from core.analytics.analytics import Analytics
 from core.analytics.ga import GoogleAnalytics
 from core.config import Config
 from core.parser.parser import DelegatingParser
-from core.telega.handler import InlineHandler
-from core.telega.inline import InlineResultsFactory
+from core.telega.message import MessageHandler as TelegaMessageHandler
+from core.telega.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
 
 
 class Container:
@@ -82,6 +89,13 @@ class Service:
             raise RuntimeError(f"Service initialization failed: {e}") from e
 
 
+def _tempdir(_: Container) -> tempfile.TemporaryDirectory:
+    """Creates and returns a temporary directory path."""
+    tempdir = tempfile.TemporaryDirectory()
+    logging.info("Created temporary directory at %s", tempdir.name)
+    return tempdir
+
+
 def __analytics_ga(container: Container) -> Analytics:
     """Initializes and returns a GoogleAnalytics instance."""
     config = container.config.google_analytics
@@ -93,6 +107,37 @@ def __analytics_ga(container: Container) -> Analytics:
             (str(x) + config.user_identifier_salt).encode()
         ).hexdigest(),
     )
+
+
+def _files_media_downloader(_: Container) -> MediaDownloader:
+    """MediaDownloader instance (no validator here)."""
+    return MediaDownloader(
+        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        2 * 1024 * 1024 * 1024,
+    )
+
+
+def _files_file_resolver(container: Container) -> FileResolver:
+    """FileResolver created using an inline RemoteFileValidator (not registered as a service)."""
+    validator = RemoteFileValidator(
+        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        2 * 1024 * 1024 * 1024,
+    )
+    return FileResolver(
+        validator,
+        container.get("files__media_downloader"),
+        container.get("files__local_storage_files"),
+    )
+
+
+def _files_local_storage_files(container: Container) -> LocalStorage:
+    """Storage for downloaded files."""
+    return LocalStorage(Path(container.get("tempdir").name))
+
+
+def _media_video_processor(container: Container) -> VideoProcessor:
+    """Video processor with its own storage."""
+    return VideoProcessor(container.get("files__local_storage_files"))
 
 
 def __parser_delegating_parser(container: Container) -> Parser:
@@ -113,36 +158,31 @@ def __parser_delegating_parser(container: Container) -> Parser:
     )
 
 
-def __telega_inline_results_factory(_: Container) -> InlineResultsFactory:
-    """Initializes and returns an InlineResultsFactory instance."""
-    return InlineResultsFactory(
-        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
-    )
-
-
-def __telegra_inline_handler(container: Container) -> InlineHandler:
-    """Initializes and returns an InlineHandler instance."""
-    return InlineHandler(
-        container.get("parser_delegating_parser"),
-        container.get("telega_inline_results_factory"),
-        container.get("analytics_ga"),
-    )
-
-
 def __app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
     logging.info("Initializing Telegram bot application")
     builder = Application.builder()
     builder.token(container.config.telegram.bot_token)
     if container.config.telegram.base_url:
-        logging.info(f"Using custom Telegram API base URL: {container.config.telegram.base_url}")
+        logging.info(
+            f"Using custom Telegram API base URL: {container.config.telegram.base_url}"
+        )
         builder.base_url(container.config.telegram.base_url)
     application = builder.build()
+
     application.add_handler(
-        InlineQueryHandler(container.get("telega_inline_handler").inline_query)
+        InlineQueryHandler(container.get("telega__inline_query_handler").handle)
     )
+    application.add_handler(
+        MessageHandler(
+            filters.TEXT & filters.ChatType.PRIVATE,
+            container.get("telega__message_handler").handle,
+        )
+    )
+
     logging.info("Starting Telegram bot polling")
-    return application.run_polling(allowed_updates=Update.INLINE_QUERY)
+
+    return application.run_polling()
 
 
 def __parser_cmtt(_: Container) -> Parser:
@@ -223,17 +263,52 @@ def _parser_youtube(container: Container) -> Parser:
     )
 
 
+def _telega_inline_query_handler(container: Container) -> TelegaInlineQueryHandler:
+    """TelegaInlineQueryHandler constructed from container services; validator created inline."""
+    validator = RemoteFileValidator(
+        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        20 * 1024 * 1024,
+    )
+    return TelegaInlineQueryHandler(
+        container.get("parser_delegating_parser"),
+        container.get("telega__message_renderer"),
+        validator,
+        container.get("analytics_ga"),
+    )
+
+
+def _telega_message_handler(container: Container) -> TelegaMessageHandler:
+    """TelegaMessageHandler constructed from container services."""
+    return TelegaMessageHandler(
+        container.get("parser_delegating_parser"),
+        container.get("telega__message_renderer"),
+        container.get("files__file_resolver"),
+        container.get("media__video_processor"),
+        container.get("analytics_ga"),
+    )
+
+
+def _telega_message_renderer(_: Container) -> MessageRenderer:
+    """Shared MessageRenderer instance."""
+    return MessageRenderer()
+
+
 def load_container(config):
     """Loads the container with the provided configuration and registers services."""
     logging.info("Loading container with services")
     container = Container(config)
 
-    container.register("analytics_ga", __analytics_ga)
-    container.register("parser_delegating_parser", __parser_delegating_parser)
-    container.register("telega_inline_results_factory", __telega_inline_results_factory)
-    container.register("telega_inline_handler", __telegra_inline_handler)
-    container.register("app", __app)
+    container.register("tempdir", _tempdir)
 
+    container.register("analytics_ga", __analytics_ga)
+
+    container.register("files__media_downloader", _files_media_downloader)
+    container.register("files__file_resolver", _files_file_resolver)
+    container.register("files__local_storage_files", _files_local_storage_files)
+
+    container.register("media__video_processor", _media_video_processor)
+
+    container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("parser__cmtt", __parser_cmtt)
     container.register("parser__habr", __parser_habr)
     container.register("parser__instagram", __parser_instagram)
@@ -245,5 +320,12 @@ def load_container(config):
     container.register("parser__vk", __parser_vk)
     container.register("parser__youtube", _parser_youtube)
 
+    container.register("telega__inline_query_handler", _telega_inline_query_handler)
+    container.register("telega__message_handler", _telega_message_handler)
+    container.register("telega__message_renderer", _telega_message_renderer)
+
+    container.register("app", __app)
+
     logging.info("Container loaded successfully")
+
     return container
