@@ -19,7 +19,7 @@ class Parser(BaseParser):
     """Parser for Tumblr URLs to extract post information."""
 
     URL_REGEX = re.compile(
-        r"https?://(?:www\.)?tumblr\.com/(?:blog/view/)?(?P<blog>[^/]+)/(?:post/)?(?P<post_id>\d+)"
+        r"https?://(?:(?P<blog_domain>[^.]+)\.tumblr\.com/post/|(?:www\.)?tumblr\.com/(?:blog/view/)?(?P<blog_path>[^/]+)/)(?P<post_id>\d+)"
     )
 
     VIDEO_SOURCE_PATTERN = re.compile(r'<source\s+src="([^"]+)"\s+type="([^"]+)"')
@@ -45,7 +45,8 @@ class Parser(BaseParser):
         if not match:
             raise InvalidUrlError()
 
-        blog_name = match.group("blog")
+        # Support both URL formats: domain.tumblr.com/post/id and tumblr.com/blog/...
+        blog_name = match.group("blog_domain") or match.group("blog_path")
         post_id = match.group("post_id")
 
         response = requests.get(
