@@ -74,7 +74,7 @@ class Parser(BaseParser):
         created_at = self._parse_date(post["date"])
         media = self._extract_media(post)
 
-        metrics = [f"💬 {self.format_counter(post.get('notes', 0))}"]
+        metrics = [f"💬 {self.format_counter(post.get('note_count', 0))}"]
         backlink = Link(post["post_url"])
 
         return Content(
