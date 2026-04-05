@@ -18,6 +18,7 @@ from parser import (
     redspecial,
     tiktok,
     trashbox,
+    truthsocial,
     twitter,
     vk,
     youtube,
@@ -151,6 +152,7 @@ def __parser_delegating_parser(container: Container) -> Parser:
             container.get("parser_redspecial"),
             container.get("parser__tiktok"),
             container.get("parser__trashbox"),
+            container.get("parser__truthsocial"),
             container.get("parser__twitter"),
             container.get("parser__vk"),
             container.get("parser__youtube"),
@@ -238,6 +240,13 @@ def __parser_trashbox(_: Container) -> Parser:
     return trashbox.Parser(f"{os.name}:{app.name()}:{app.version()}")
 
 
+def __parser_truthsocial(_: Container) -> Parser:
+    """Initializes and returns a truthsocial.Parser instance."""
+    return truthsocial.Parser(
+        f"Mozilla/5.0 {os.name}:{app.name()}:{app.version()} tomsg_bot (like TwitterBot)",
+    )
+
+
 def __parser_twitter(_: Container) -> Parser:
     """Initializes and returns a twitter.Parser instance."""
     return twitter.Parser(
@@ -316,6 +325,7 @@ def load_container(config):
     container.register("parser_redspecial", __parser_redspecial)
     container.register("parser__tiktok", __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
+    container.register("parser__truthsocial", __parser_truthsocial)
     container.register("parser__twitter", __parser_twitter)
     container.register("parser__vk", __parser_vk)
     container.register("parser__youtube", _parser_youtube)
