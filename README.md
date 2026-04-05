@@ -46,6 +46,7 @@ make start
 | `REDDIT_OWNER_USERNAME`         | Owner's Reddit username for identification purposes in operations.                                                                          |
 | `TIKTOK_VIDEO_RESOURCE_URL`     | URL template for accessing TikTok video files, with %s as a placeholder for the video ID.                                                   | 
 | `TIKTOK_THUMBNAIL_RESOURCE_URL` | URL template for accessing TikTok video thumbnails, with %s as a placeholder for the video ID.                                              |
+| `TUMBLR_API_KEY`                | API Key from your Tumblr application (required for API access)                                                                              |
 | `GA_MEASUREMENT_ID`             | Unique identifier for the Google Analytics property used to track and measure app activity.                                                 |
 | `GA_SECRET`                     | Secret key used for authenticating requests to Google Analytics API, ensuring secure data handling.                                         |
 | `GA_UID_SALT`                   | The salt used for securely hashing user and client identifiers before sending to Google Analytics.                                          |

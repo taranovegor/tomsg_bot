@@ -19,6 +19,7 @@ from parser import (
     tiktok,
     trashbox,
     truthsocial,
+    tumblr,
     twitter,
     vk,
     youtube,
@@ -153,6 +154,7 @@ def __parser_delegating_parser(container: Container) -> Parser:
             container.get("parser__tiktok"),
             container.get("parser__trashbox"),
             container.get("parser__truthsocial"),
+            container.get("parser__tumblr"),
             container.get("parser__twitter"),
             container.get("parser__vk"),
             container.get("parser__youtube"),
@@ -243,7 +245,16 @@ def __parser_trashbox(_: Container) -> Parser:
 def __parser_truthsocial(_: Container) -> Parser:
     """Initializes and returns a truthsocial.Parser instance."""
     return truthsocial.Parser(
-        f"Mozilla/5.0 {os.name}:{app.name()}:{app.version()} tomsg_bot (like TwitterBot)",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 tomsg_bot",
+    )
+
+
+def __parser_tumblr(container: Container) -> Parser:
+    """Initializes and returns a tumblr.Parser instance."""
+    config = container.config.tumblr
+    return tumblr.Parser(
+        config.api_key,
+        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
     )
 
 
@@ -326,6 +337,7 @@ def load_container(config):
     container.register("parser__tiktok", __parser_tiktok)
     container.register("parser__trashbox", __parser_trashbox)
     container.register("parser__truthsocial", __parser_truthsocial)
+    container.register("parser__tumblr", __parser_tumblr)
     container.register("parser__twitter", __parser_twitter)
     container.register("parser__vk", __parser_vk)
     container.register("parser__youtube", _parser_youtube)

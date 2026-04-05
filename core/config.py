@@ -65,6 +65,14 @@ class YouTubeConfig:
         self.api_key = os.getenv("YOUTUBE_API_KEY")
 
 
+class TumblrConfig:
+    """Holds the configuration for Tumblr-related settings."""
+
+    def __init__(self):
+        """Initializes with Tumblr API key from environment variable."""
+        self.api_key = os.getenv("TUMBLR_API_KEY")
+
+
 class Config:
     """Holds the entire configuration for all services."""
 
@@ -78,6 +86,7 @@ class Config:
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()
         self.tiktok = TikTokConfig()
+        self.tumblr = TumblrConfig()
         self.vk = VKConfig()
         self.youtube = YouTubeConfig()
 
