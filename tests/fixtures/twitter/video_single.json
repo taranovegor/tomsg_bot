@@ -1,0 +1,48 @@
+{
+    "allSameType": true,
+    "article": null,
+    "combinedMediaUrl": null,
+    "communityNote": null,
+    "conversationID": "1882129591508296135",
+    "date": "Wed Jan 22 18:13:57 +0000 2025",
+    "date_epoch": 1737569637,
+    "fetched_on": 1782415169,
+    "hasMedia": true,
+    "hashtags": [],
+    "lang": "en",
+    "likes": 5318,
+    "mediaURLs": [
+        "https://video.twimg.com/amplify_video/1882129526232080384/vid/avc1/1080x1920/vHXdYWL2J7KZpmlZ.mp4"
+    ],
+    "media_extended": [
+        {
+            "altText": null,
+            "duration_millis": 31466,
+            "id_str": "1882129526232080384",
+            "size": {
+                "height": 1920,
+                "width": 1080
+            },
+            "thumbnail_url": "https://pbs.twimg.com/amplify_video_thumb/1882129526232080384/img/02sv1byHt5zUpOhm.jpg",
+            "type": "video",
+            "url": "https://video.twimg.com/amplify_video/1882129526232080384/vid/avc1/1080x1920/vHXdYWL2J7KZpmlZ.mp4"
+        }
+    ],
+    "pollData": null,
+    "possibly_sensitive": false,
+    "qrt": null,
+    "qrtURL": null,
+    "replies": 50,
+    "replyingTo": null,
+    "replyingToID": null,
+    "retweet": null,
+    "retweetURL": null,
+    "retweets": 808,
+    "text": "A Soul With No King \ud83e\uddda",
+    "translation": null,
+    "tweetID": "1882129591508296135",
+    "tweetURL": "https://twitter.com/AURORAmusic/status/1882129591508296135",
+    "user_name": "AURORA",
+    "user_profile_image_url": "https://pbs.twimg.com/profile_images/1770517911322374144/56sC_Sax_normal.jpg",
+    "user_screen_name": "AURORAmusic"
+}

@@ -1,0 +1,279 @@
+{
+    "message": "",
+    "result": {
+        "items": [
+            {
+                "id": 49646537,
+                "author": {
+                    "id": 1530880,
+                    "uri": "",
+                    "type": 1,
+                    "name": "ch35h1r3 c4t",
+                    "nickname": null,
+                    "avatar": {
+                        "type": "image",
+                        "data": {
+                            "uuid": "7637a7e4-55cd-51c5-b336-1dce7e2f32dc",
+                            "width": 1440,
+                            "height": 1440,
+                            "size": 263302,
+                            "type": "webp",
+                            "color": "b87a55",
+                            "hash": "",
+                            "external_service": [],
+                            "base64preview": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAAKAAoDAREAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABwUI/8QAJxAAAQMCBQMFAQAAAAAAAAAAAQIDEQQFAAYHEiETFBUiIzFCUmH/xAAXAQEBAQEAAAAAAAAAAAAAAAAGBQQH/8QAJREAAQMCBAcBAAAAAAAAAAAAAQACAwQRBSFBcRITMTIzUdFh/9oADAMBAAIRAxEAPwAM0L0Yt2UrK5qzmtqqYcSpNZRJYKy5RN8KQdySPcPEQZHH9wPr8QmllFPTmxGuhPxNcNwmNkBqp2XHXYfVuyy6k3Pw9D5LPuXO77Zrr9RxG7qbRumFRMzMcY2ttYXUp0T7nhGWyIloQX7dTlALRrXjsj0yN0GPjiBgq/xX/F0Q5QAD2oN4ZaF2rQGkACpc+o/RxUhJ5Tdgj0neV//Z"
+                        }
+                    },
+                    "badge": null,
+                    "badgeId": null,
+                    "isVerified": false,
+                    "isPlus": false,
+                    "isOnline": false,
+                    "isFrozen": false,
+                    "isRemovedByUserRequest": false,
+                    "isDonationsEnabled": false
+                },
+                "date": 1741596283,
+                "lastModificationDate": 1741596283,
+                "isFavorited": false,
+                "dateFavorite": 0,
+                "isEdited": false,
+                "likes": {
+                    "counterLikes": 57,
+                    "counterDislikes": null,
+                    "isLiked": false,
+                    "isHidden": false
+                },
+                "reactions": {
+                    "counters": [
+                        {
+                            "id": 22,
+                            "count": 40
+                        },
+                        {
+                            "id": 4,
+                            "count": 14
+                        },
+                        {
+                            "id": 1,
+                            "count": 2
+                        },
+                        {
+                            "id": 2,
+                            "count": 1
+                        },
+                        {
+                            "id": 6,
+                            "count": 0
+                        },
+                        {
+                            "id": 3,
+                            "count": 0
+                        },
+                        {
+                            "id": 23,
+                            "count": 0
+                        },
+                        {
+                            "id": 24,
+                            "count": 0
+                        },
+                        {
+                            "id": 5,
+                            "count": 0
+                        },
+                        {
+                            "id": 9,
+                            "count": 0
+                        },
+                        {
+                            "id": 34,
+                            "count": 0
+                        },
+                        {
+                            "id": 35,
+                            "count": 0
+                        },
+                        {
+                            "id": 36,
+                            "count": 0
+                        },
+                        {
+                            "id": 8,
+                            "count": 0
+                        },
+                        {
+                            "id": 37,
+                            "count": 0
+                        },
+                        {
+                            "id": 25,
+                            "count": 0
+                        },
+                        {
+                            "id": 38,
+                            "count": 0
+                        },
+                        {
+                            "id": 39,
+                            "count": 0
+                        },
+                        {
+                            "id": 40,
+                            "count": 0
+                        },
+                        {
+                            "id": 41,
+                            "count": 0
+                        },
+                        {
+                            "id": 42,
+                            "count": 0
+                        },
+                        {
+                            "id": 43,
+                            "count": 0
+                        },
+                        {
+                            "id": 44,
+                            "count": 0
+                        },
+                        {
+                            "id": 45,
+                            "count": 0
+                        },
+                        {
+                            "id": 46,
+                            "count": 0
+                        },
+                        {
+                            "id": 47,
+                            "count": 0
+                        },
+                        {
+                            "id": 48,
+                            "count": 0
+                        },
+                        {
+                            "id": 49,
+                            "count": 0
+                        },
+                        {
+                            "id": 50,
+                            "count": 0
+                        },
+                        {
+                            "id": 51,
+                            "count": 0
+                        },
+                        {
+                            "id": 52,
+                            "count": 0
+                        },
+                        {
+                            "id": 53,
+                            "count": 0
+                        },
+                        {
+                            "id": 7,
+                            "count": 0
+                        },
+                        {
+                            "id": 20,
+                            "count": 0
+                        },
+                        {
+                            "id": 14,
+                            "count": 0
+                        },
+                        {
+                            "id": 28,
+                            "count": 0
+                        },
+                        {
+                            "id": 26,
+                            "count": 0
+                        },
+                        {
+                            "id": 21,
+                            "count": 0
+                        },
+                        {
+                            "id": 31,
+                            "count": 0
+                        },
+                        {
+                            "id": 29,
+                            "count": 0
+                        },
+                        {
+                            "id": 18,
+                            "count": 0
+                        },
+                        {
+                            "id": 16,
+                            "count": 0
+                        },
+                        {
+                            "id": 15,
+                            "count": 0
+                        },
+                        {
+                            "id": 17,
+                            "count": 0
+                        },
+                        {
+                            "id": 13,
+                            "count": 0
+                        },
+                        {
+                            "id": 33,
+                            "count": 0
+                        },
+                        {
+                            "id": 19,
+                            "count": 0
+                        },
+                        {
+                            "id": 11,
+                            "count": 0
+                        },
+                        {
+                            "id": 12,
+                            "count": 0
+                        },
+                        {
+                            "id": 10,
+                            "count": 0
+                        }
+                    ],
+                    "reactionId": 0
+                },
+                "entry": {
+                    "id": 3626060,
+                    "subsiteId": 128871,
+                    "title": "ChatGPT \u043f\u044b\u0442\u0430\u0435\u0442\u0441\u044f \u0441\u0432\u0435\u0441\u0442\u0438 \u043c\u0435\u043d\u044f \u0441 \u0443\u043c\u0430. \u042d\u0442\u043e \u043c\u0430\u0441\u0441\u043e\u0432\u043e\u0435 \u044f\u0432\u043b\u0435\u043d\u0438\u0435",
+                    "subsiteName": "\u0421\u0432\u0435\u0436\u0438\u0439"
+                },
+                "media": [],
+                "level": 0,
+                "isPinned": false,
+                "isIgnored": false,
+                "isRemoved": false,
+                "isRemovedByModerator": false,
+                "isHiddenByBan": false,
+                "hiddenContent": null,
+                "replyTo": 0,
+                "text": "\u0421\u043d\u044f\u0442\u0441\u044f \u043b\u0438 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u043c \u043e\u0431\u0435\u0437\u044c\u044f\u043d\u0430\u043c \u0448\u0435\u0440\u0448\u0430\u0432\u044b\u0435 \u043a\u0430\u0431\u0430\u043d\u044b \ud83d\udc17\ud83d\ude48\ud83d\ude49\ud83d\ude4a",
+                "donation": null,
+                "donate": null,
+                "threadId": "ade4b4e5169b4e38d43f05f8fd2df134cac4dc0be5f115572a4795ba8750aa73",
+                "replyCount": 0,
+                "donations": {
+                    "amount": 0,
+                    "isDonated": false
+                }
+            }
+        ]
+    }
+}

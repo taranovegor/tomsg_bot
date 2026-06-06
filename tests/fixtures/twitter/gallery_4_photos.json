@@ -1,0 +1,83 @@
+{
+    "allSameType": true,
+    "article": null,
+    "combinedMediaUrl": "https://vxtwitter.com/rendercombined.jpg?imgs=https://pbs.twimg.com/media/G8Tb8T3WYAMDTyL.jpg,https://pbs.twimg.com/media/G8Tb8UJXEAUKpvm.jpg,https://pbs.twimg.com/media/G8Tb9oDWEAEden7.jpg,https://pbs.twimg.com/media/G8Tb-eZXMAEVG59.jpg",
+    "communityNote": null,
+    "conversationID": "2000966638414241957",
+    "date": "Tue Dec 16 16:29:57 +0000 2025",
+    "date_epoch": 1765902597,
+    "fetched_on": 1782415171,
+    "hasMedia": true,
+    "hashtags": [],
+    "lang": "en",
+    "likes": 1115,
+    "mediaURLs": [
+        "https://pbs.twimg.com/media/G8Tb8T3WYAMDTyL.jpg",
+        "https://pbs.twimg.com/media/G8Tb8UJXEAUKpvm.jpg",
+        "https://pbs.twimg.com/media/G8Tb9oDWEAEden7.jpg",
+        "https://pbs.twimg.com/media/G8Tb-eZXMAEVG59.jpg"
+    ],
+    "media_extended": [
+        {
+            "altText": null,
+            "id_str": "2000965963630403587",
+            "size": {
+                "height": 2731,
+                "width": 4096
+            },
+            "thumbnail_url": "https://pbs.twimg.com/media/G8Tb8T3WYAMDTyL.jpg",
+            "type": "image",
+            "url": "https://pbs.twimg.com/media/G8Tb8T3WYAMDTyL.jpg"
+        },
+        {
+            "altText": null,
+            "id_str": "2000965963705946117",
+            "size": {
+                "height": 1800,
+                "width": 1800
+            },
+            "thumbnail_url": "https://pbs.twimg.com/media/G8Tb8UJXEAUKpvm.jpg",
+            "type": "image",
+            "url": "https://pbs.twimg.com/media/G8Tb8UJXEAUKpvm.jpg"
+        },
+        {
+            "altText": null,
+            "id_str": "2000965986229293057",
+            "size": {
+                "height": 2731,
+                "width": 4096
+            },
+            "thumbnail_url": "https://pbs.twimg.com/media/G8Tb9oDWEAEden7.jpg",
+            "type": "image",
+            "url": "https://pbs.twimg.com/media/G8Tb9oDWEAEden7.jpg"
+        },
+        {
+            "altText": null,
+            "id_str": "2000966000817156097",
+            "size": {
+                "height": 3027,
+                "width": 4096
+            },
+            "thumbnail_url": "https://pbs.twimg.com/media/G8Tb-eZXMAEVG59.jpg",
+            "type": "image",
+            "url": "https://pbs.twimg.com/media/G8Tb-eZXMAEVG59.jpg"
+        }
+    ],
+    "pollData": null,
+    "possibly_sensitive": false,
+    "qrt": null,
+    "qrtURL": null,
+    "replies": 31,
+    "replyingTo": null,
+    "replyingToID": null,
+    "retweet": null,
+    "retweetURL": null,
+    "retweets": 99,
+    "text": "My warriors. Thank you so much for coming along to such a special evening at @UnionChapelUK to raise vital funds for @WarChildUK and those children whose lives are being torn apart from war. I CANT BELIEVE WE RAISED 84,430 POUNDS\n\nBefore the show, I collaborated with @Soundwaves_Art  on a very limited collection of artworks created from the audio recording of \u201cThrough the Eyes of a Child,\u201d with all profits supporting War Child UK. There are only 50 signed prints and 3 original artworks available, so be quick if you want one. Thank you so much and I love you all x",
+    "translation": null,
+    "tweetID": "2000966638414241957",
+    "tweetURL": "https://twitter.com/AURORAmusic/status/2000966638414241957",
+    "user_name": "AURORA",
+    "user_profile_image_url": "https://pbs.twimg.com/profile_images/1770517911322374144/56sC_Sax_normal.jpg",
+    "user_screen_name": "AURORAmusic"
+}
