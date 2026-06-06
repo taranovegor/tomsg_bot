@@ -1,0 +1,16 @@
+{
+    "user_screen_name": "testuser",
+    "user_name": "Test User (@testuser)",
+    "text": "Hello world! This is a test tweet <b>with bold</b>",
+    "replies": 10,
+    "retweets": 5,
+    "likes": 1234,
+    "date": "Mon Jan 01 12:00:00 +0000 2024",
+    "media_extended": [
+        {
+            "type": "image",
+            "url": "https://pbs.twimg.com/media/example.jpg",
+            "thumbnail_url": "https://pbs.twimg.com/media/example.jpg"
+        }
+    ]
+}
