@@ -23,9 +23,10 @@ class Parser(BaseParser):
         r"(?P<username>[^/]+)/status/(?P<status_id>\d+)"
     )
 
-    def __init__(self, user_agent: str):
+    def __init__(self, user_agent: str, timeout: int = 30):
         """Initializes the parser with a user agent for making requests."""
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         """Checks if the URL is supported by this parser."""
@@ -42,6 +43,7 @@ class Parser(BaseParser):
         response = requests.get(
             f"https://api.vxtwitter.com/status/{status_id}",
             headers={"User-Agent": self.user_agent},
+            timeout=self.timeout,
         )
         if response.status_code != 200:
             raise ParseError("Unhandled response error")

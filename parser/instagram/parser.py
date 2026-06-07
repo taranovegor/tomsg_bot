@@ -17,10 +17,11 @@ from .cipher import Cipher
 class Parser(BaseParser):
     URL_REGEX = re.compile(r'^https?://(?:www\.)?instagram\.com/(p|reels?|share)/[\w-]+/?.*')
 
-    def __init__(self, parser_url: str, user_agent: str, cipher: Cipher):
+    def __init__(self, parser_url: str, user_agent: str, cipher: Cipher, timeout: int = 30):
         self.parser_url = parser_url
         self.user_agent = user_agent
         self.cipher = cipher
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         return bool(self.URL_REGEX.match(url))
@@ -33,7 +34,7 @@ class Parser(BaseParser):
         response = requests.get(self.parser_url, headers={
             'User-Agent': self.user_agent,
             'Url': self.cipher.encrypt(url),
-        })
+        }, timeout=self.timeout)
         if response.status_code != 200:
             raise ParseError('Unhandled response error')
 

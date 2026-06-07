@@ -40,8 +40,9 @@ def format_content(content):
 
 
 class Parser(BaseParser):
-    def __init__(self, user_agent: str):
+    def __init__(self, user_agent: str, timeout: int = 30):
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url):
         return "trashbox.ru" in url and "#div_comment_" in url
@@ -97,7 +98,7 @@ class Parser(BaseParser):
         return json.loads(self.fetch(f'https://trashbox.ru/api_noauth.php?action=comments&topic_id={topic_id}'))['comments']
 
     def fetch(self, url) -> str:
-        response = requests.get(url, headers={"User-Agent": self.user_agent})
+        response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code == 200:
             return response.text
         else:

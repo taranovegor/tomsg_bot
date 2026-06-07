@@ -156,12 +156,12 @@ class InlineQueryHandler:
             allowed_media = [m for m, ok in zip(content.media, allowed_flags) if ok]
 
             for media in allowed_media:
-                kwargs = {
+                # Fields shared across all inline result types
+                common = {
                     "id": generate_uuid(),
                     "title": f"➡️ Отправить {self.MEDIA_LABELS[media.type()]}",
                     "caption": self.renderer.render_with_link(content),
                     "parse_mode": ParseMode.HTML,
-                    "description": raw_text,
                 }
 
                 match media.type():
@@ -169,20 +169,23 @@ class InlineQueryHandler:
                         result = InlineQueryResultPhoto(
                             photo_url=media.resource_url,
                             thumbnail_url=media.thumbnail_url or media.resource_url,
-                            **kwargs,
+                            description=raw_text,
+                            **common,
                         )
                     case MediaType.GIF:
+                        # InlineQueryResultGif has no description field in the Telegram API
                         result = InlineQueryResultGif(
                             gif_url=media.resource_url,
-                            thumbnail_url=media.thumbnail_url,
-                            **kwargs,
+                            thumbnail_url=media.thumbnail_url or media.resource_url,
+                            **common,
                         )
                     case MediaType.VIDEO:
                         result = InlineQueryResultVideo(
                             video_url=media.resource_url,
                             mime_type=media.mime_type,
-                            thumbnail_url=media.thumbnail_url,
-                            **kwargs,
+                            thumbnail_url=media.thumbnail_url or media.resource_url,
+                            description=raw_text,
+                            **common,
                         )
                     case _:
                         continue
