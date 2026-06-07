@@ -25,6 +25,12 @@ from core.telega.renderer import MessageRenderer
 from core.utils.urls import is_valid_url
 
 
+def _log_task_exception(task: asyncio.Task) -> None:
+    """Done-callback that logs any unhandled exception from a fire-and-forget task."""
+    if not task.cancelled() and (exc := task.exception()):
+        logging.error("Background _send_content task failed", exc_info=exc)
+
+
 class MessageHandler:
     """
     Handle private messages that contain URLs: validate, parse, render and send.
@@ -84,7 +90,8 @@ class MessageHandler:
             events.add(Event("page_view").add("page_location", text))
             content = await asyncio.to_thread(self.parser.parse, text)
             logging.debug("Successfully parsed entity for text: %s", text)
-            asyncio.create_task(self._send_content(message, content))
+            task = asyncio.create_task(self._send_content(message, content))
+            task.add_done_callback(_log_task_exception)
         except ParserNotFoundError as e:
             logging.warning("Parser not found for hostname: %s", hostname)
             events.add(
@@ -118,7 +125,6 @@ class MessageHandler:
             await message.reply_text(text, disable_web_page_preview=True, **kwargs)
             return
 
-        all_media_inputs = []
         all_files_to_close = []
         all_files_to_remove = []
 
@@ -144,6 +150,11 @@ class MessageHandler:
                 return_exceptions=True,
             )
 
+            # Telegram forbids InputMediaAnimation inside a media group that contains
+            # photos or videos — GIFs must be sent as individual reply_animation calls.
+            regular_media = []  # InputMediaPhoto / InputMediaVideo
+            gif_inputs = []     # InputMediaAnimation
+
             for item in prepared:
                 if isinstance(item, Exception):
                     logging.warning("Failed to prepare media: %s", item)
@@ -151,25 +162,49 @@ class MessageHandler:
                 media_input, files_to_close, files_to_remove = item
                 if media_input is None:
                     continue
-                all_media_inputs.append(media_input)
                 all_files_to_close.extend(files_to_close)
                 all_files_to_remove.extend(files_to_remove)
+                if isinstance(media_input, InputMediaAnimation):
+                    gif_inputs.append(media_input)
+                else:
+                    regular_media.append(media_input)
 
-            if not all_media_inputs:
+            if not regular_media and not gif_inputs:
                 await message.reply_text(text, disable_web_page_preview=True, **kwargs)
                 return
 
+            caption_sent = False
             chunk_size = 10
-            total = len(all_media_inputs)
-            for i in range(0, total, chunk_size):
-                chunk = all_media_inputs[i : i + chunk_size]
-                is_last = i + chunk_size >= total
+
+            # Send photos and videos as media groups
+            for i in range(0, len(regular_media), chunk_size):
+                chunk = regular_media[i : i + chunk_size]
+                is_last_regular = i + chunk_size >= len(regular_media)
+                use_caption = is_last_regular and not gif_inputs
                 try:
                     await message.reply_media_group(
-                        chunk, caption=text if is_last else None, **kwargs
+                        chunk, caption=text if use_caption else None, **kwargs
                     )
+                    if use_caption:
+                        caption_sent = True
                 except Exception as e:
                     logging.error("Failed to send media chunk: %s", e)
+
+            # Send each GIF as a standalone message
+            for idx, gif_input in enumerate(gif_inputs):
+                is_last_gif = idx == len(gif_inputs) - 1
+                use_caption = is_last_gif and not caption_sent
+                try:
+                    await message.reply_animation(
+                        gif_input.media,
+                        caption=text if use_caption else None,
+                        **kwargs,
+                    )
+                    if use_caption:
+                        caption_sent = True
+                except Exception as e:
+                    logging.error("Failed to send GIF: %s", e)
+
         finally:
             for fh in all_files_to_close:
                 try:

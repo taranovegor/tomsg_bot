@@ -17,8 +17,9 @@ class Parser(BaseParser):
     URL_REGEX = re.compile(r'^https://(?P<domain>dtf\.ru|vc\.ru)/[^?]+\?comment=(?P<comment_id>\d+)')
     REACTIONS_EMOJIS = {1: '❤️', 2: '🔥', 22: '😎', 4: '😂', 7: '😱', 3: '🥲', 5: '😡', 9: '🍿', 24: '👀', 10: '💸', 23: '😐', 41: '💊'}
 
-    def __init__(self, user_agent: str):
+    def __init__(self, user_agent: str, timeout: int = 30):
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url):
         return bool(self.URL_REGEX.match(url))
@@ -62,7 +63,7 @@ class Parser(BaseParser):
         )
 
     def __fetch(self, url):
-        response = requests.get(url, headers={"User-Agent": self.user_agent})
+        response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code == 200:
             return json.loads(response.text)
         else:

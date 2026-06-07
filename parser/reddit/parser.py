@@ -25,10 +25,11 @@ class Parser(BaseParser):
         r'(?:/[a-zA-Z0-9_%]+)?(?:/([a-zA-Z0-9_%]+))?/?(?:\?.*)?$'
     )
 
-    def __init__(self, client_id: str, client_secret: str, user_agent: str):
+    def __init__(self, client_id: str, client_secret: str, user_agent: str, timeout: int = 30):
         self.client_id = client_id
         self.client_secret = client_secret
         self.user_agent = user_agent
+        self.timeout = timeout
         self.cache = {}
 
     def supports(self, url: str) -> bool:
@@ -44,7 +45,7 @@ class Parser(BaseParser):
             url = requests.get(url, headers={
                 "Authorization": f"Bearer {access_token}",
                 "User-Agent": self.user_agent,
-            }, allow_redirects=True).url
+            }, allow_redirects=True, timeout=self.timeout).url
 
         matches = self.COMMENT_URL_REGEX.match(url)
         if not matches or len(matches.groups()) < 3:
@@ -66,7 +67,7 @@ class Parser(BaseParser):
         auth = (self.client_id, self.client_secret)
         headers = {"User-Agent": self.user_agent}
 
-        response = requests.post(auth_url, data=data, auth=auth, headers=headers)
+        response = requests.post(auth_url, data=data, auth=auth, headers=headers, timeout=self.timeout)
         if response.status_code != 200:
             raise Exception(f"Failed to get auth token: {response.status_code} {response.text}")
 
@@ -88,7 +89,7 @@ class Parser(BaseParser):
 
         response = requests.get(api_url, headers=headers, cookies={
             'reddit_session': access_token,
-        })
+        }, timeout=self.timeout)
         if response.status_code != 200:
             raise Exception(f"Failed to fetch data: {response.status_code} {response.text}")
 

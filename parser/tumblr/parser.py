@@ -30,10 +30,11 @@ class Parser(BaseParser):
     MIME_GIF = "image/gif"
     MIME_MP4 = "video/mp4"
 
-    def __init__(self, api_key: str, user_agent: str):
+    def __init__(self, api_key: str, user_agent: str, timeout: int = 30):
         """Initializes the parser with Tumblr API key and user agent."""
         self.api_key = api_key
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         """Checks if the URL is supported by this parser."""
@@ -53,6 +54,7 @@ class Parser(BaseParser):
             f"https://api.tumblr.com/v2/blog/{blog_name}.tumblr.com/posts",
             params={"id": post_id, "api_key": self.api_key},
             headers={"User-Agent": self.user_agent},
+            timeout=self.timeout,
         )
 
         if response.status_code != 200:

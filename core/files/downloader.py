@@ -7,7 +7,7 @@ import re
 import urllib.parse
 import uuid
 
-from .exception import FileDownloadError
+from .exception import FileDownloadError, FileTooLarge
 
 
 class MediaDownloader:
@@ -15,14 +15,18 @@ class MediaDownloader:
 
     CHUNK_SIZE = 64 * 1024
 
-    def __init__(self, user_agent: str, timeout: int = 120):
+    def __init__(self, user_agent: str, timeout: int = 120, max_bytes: int = 0):
         self.user_agent = user_agent
         self.timeout = timeout
+        # 0 means no limit
+        self.max_bytes = max_bytes
 
     async def download(self, url: str, dest_path: str) -> int:
         """Stream-download URL to dest_path and return total bytes written.
 
         - Streams in CHUNK_SIZE increments.
+        - Raises FileTooLarge when max_bytes is set and exceeded (checked
+          per-chunk, so a lying or absent Content-Length does not bypass it).
         - Raises FileDownloadError on HTTP error responses.
         - Removes partial file on any exception before re-raising.
         """
@@ -43,6 +47,10 @@ class MediaDownloader:
                             if not chunk:
                                 break
                             downloaded += len(chunk)
+                            if self.max_bytes and downloaded > self.max_bytes:
+                                raise FileTooLarge(
+                                    f"Download exceeded {self.max_bytes} bytes: {url}"
+                                )
                             await fd.write(chunk)
             return downloaded
         except Exception:

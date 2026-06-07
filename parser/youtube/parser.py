@@ -21,10 +21,11 @@ class Parser(BaseParser):
         r"(?:[^#]*&)?lc=(?P<comment_id>[a-zA-Z0-9_-]+)"
     )
 
-    def __init__(self, api_key: str, user_agent: str):
+    def __init__(self, api_key: str, user_agent: str, timeout: int = 30):
         """Initialize parser with API key and user agent."""
         self.api_key = api_key
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         """Check if the given URL matches YouTube comment format."""
@@ -44,6 +45,7 @@ class Parser(BaseParser):
             f"&part=snippet"
             f"&key={self.api_key}",
             headers={"User-Agent": self.user_agent},
+            timeout=self.timeout,
         )
         if response.status_code != 200:
             raise ParseError(

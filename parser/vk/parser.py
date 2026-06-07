@@ -25,9 +25,10 @@ class Parser(BaseParser):
         r"&clip_id=(?P<clip_id>\d+)"
     )
 
-    def __init__(self, thumbnail_url: str, user_agent: str):
+    def __init__(self, thumbnail_url: str, user_agent: str, timeout: int = 30):
         self.thumbnail_url = thumbnail_url
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         return any(
@@ -50,7 +51,7 @@ class Parser(BaseParser):
                 f"_{matches.group('clip_id')}"
             )
 
-        response = requests.get(url, headers={"User-Agent": self.user_agent})
+        response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code != 200:
             raise ParseError(
                 "Failed to fetch the page. HTTP status: %s",

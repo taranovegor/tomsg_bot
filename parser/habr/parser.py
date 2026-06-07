@@ -18,9 +18,10 @@ class Parser(BaseParser):
 
     URL_REGEX = re.compile(r"^https?://habr\.com/.*/(\d+).*#comment_(\d+)$")
 
-    def __init__(self, user_agent: str):
+    def __init__(self, user_agent: str, timeout: int = 30):
         """Initialize parser with a custom User-Agent."""
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def supports(self, url: str) -> bool:
         """Check if the given URL matches the expected pattern."""
@@ -64,7 +65,7 @@ class Parser(BaseParser):
 
     def _fetch(self, url: str) -> dict:
         """Perform an HTTP GET request and return the JSON response."""
-        response = requests.get(url, headers={"User-Agent": self.user_agent})
+        response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code == 200:
             return response.json()
         raise ParseError(f"Request failed with status code: {response.status_code}")

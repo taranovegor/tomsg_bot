@@ -112,10 +112,11 @@ def __analytics_ga(container: Container) -> Analytics:
 
 
 def _files_media_downloader(_: Container) -> MediaDownloader:
-    """MediaDownloader instance (no validator here)."""
+    """MediaDownloader instance with a 2 GiB streaming cap and 5-minute timeout."""
     return MediaDownloader(
         f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
-        2 * 1024 * 1024 * 1024,
+        timeout=300,
+        max_bytes=2 * 1024 * 1024 * 1024,
     )
 
 
@@ -189,14 +190,20 @@ def __app(container: Container) -> None:
     return application.run_polling()
 
 
-def __parser_cmtt(_: Container) -> Parser:
+def __parser_cmtt(container: Container) -> Parser:
     """Initializes and returns a cmtt.Parser instance."""
-    return cmtt.Parser(f"{os.name}:{app.name()}:{app.version()}")
+    return cmtt.Parser(
+        f"{os.name}:{app.name()}:{app.version()}",
+        timeout=container.config.parser_http_timeout,
+    )
 
 
-def __parser_habr(_: Container) -> Parser:
+def __parser_habr(container: Container) -> Parser:
     """Initializes and returns a habr.Parser instance."""
-    return habr.Parser(f"{os.name}:{app.name()}:{app.version()}")
+    return habr.Parser(
+        f"{os.name}:{app.name()}:{app.version()}",
+        timeout=container.config.parser_http_timeout,
+    )
 
 
 def __parser_instagram(container: Container) -> Parser:
@@ -209,6 +216,7 @@ def __parser_instagram(container: Container) -> Parser:
         config.parser_url,
         f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
         cipher,
+        timeout=container.config.parser_http_timeout,
     )
 
 
@@ -219,12 +227,16 @@ def __parser_reddit(container: Container) -> Parser:
         config.client_id,
         config.client_secret,
         f"{os.name}:{app.name()}:{app.version()} (by /u/{config.app_owner_username})",
+        timeout=container.config.parser_http_timeout,
     )
 
 
-def __parser_redspecial(_: Container) -> Parser:
+def __parser_redspecial(container: Container) -> Parser:
     """Initializes and returns a redspecial.Parser instance."""
-    return redspecial.Parser(f"{os.name}:{app.name()}:{app.version()}")
+    return redspecial.Parser(
+        f"{os.name}:{app.name()}:{app.version()}",
+        timeout=container.config.parser_http_timeout,
+    )
 
 
 def __parser_tiktok(container: Container) -> Parser:
@@ -234,18 +246,23 @@ def __parser_tiktok(container: Container) -> Parser:
         config.video_resource_url,
         config.thumbnail_resource_url,
         f"{os.name}:{app.name()}:{app.version()}",
+        timeout=container.config.parser_http_timeout,
     )
 
 
-def __parser_trashbox(_: Container) -> Parser:
+def __parser_trashbox(container: Container) -> Parser:
     """Initializes and returns a trashbox.Parser instance."""
-    return trashbox.Parser(f"{os.name}:{app.name()}:{app.version()}")
+    return trashbox.Parser(
+        f"{os.name}:{app.name()}:{app.version()}",
+        timeout=container.config.parser_http_timeout,
+    )
 
 
-def __parser_truthsocial(_: Container) -> Parser:
+def __parser_truthsocial(container: Container) -> Parser:
     """Initializes and returns a truthsocial.Parser instance."""
     return truthsocial.Parser(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 tomsg_bot",
+        timeout=container.config.parser_http_timeout,
     )
 
 
@@ -255,13 +272,15 @@ def __parser_tumblr(container: Container) -> Parser:
     return tumblr.Parser(
         config.api_key,
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        timeout=container.config.parser_http_timeout,
     )
 
 
-def __parser_twitter(_: Container) -> Parser:
+def __parser_twitter(container: Container) -> Parser:
     """Initializes and returns a twitter.Parser instance."""
     return twitter.Parser(
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        timeout=container.config.parser_http_timeout,
     )
 
 
@@ -271,6 +290,7 @@ def __parser_vk(container: Container) -> Parser:
     return vk.Parser(
         config.thumbnail_url,
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        timeout=container.config.parser_http_timeout,
     )
 
 
@@ -280,6 +300,7 @@ def _parser_youtube(container: Container) -> Parser:
     return youtube.Parser(
         config.api_key,
         f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        timeout=container.config.parser_http_timeout,
     )
 
 
