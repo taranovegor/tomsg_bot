@@ -101,8 +101,7 @@ class TestContainerWiresDownloaderCorrectly:
         """
         The downloader must have a sane timeout and a real max_bytes cap.
         """
-        import core.app  # noqa: F401 — resolves circular import
-        from core.container import load_container
+        from bootstrap.container import load_container
         from core.files.downloader import MediaDownloader
 
         container = load_container(stub_config)

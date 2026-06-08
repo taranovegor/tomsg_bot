@@ -128,8 +128,7 @@ class TestContainerPassesTimeout:
         """Every parser registered in the container must expose timeout=42 when
         config.parser_http_timeout=42. A missing timeout attribute or wrong value
         means the parser ignores PARSER_HTTP_TIMEOUT."""
-        import core.app  # noqa: F401
-        from core.container import load_container
+        from bootstrap.container import load_container
 
         stub_config.parser_http_timeout = 42
         container = load_container(stub_config)
