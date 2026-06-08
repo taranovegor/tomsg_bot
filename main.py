@@ -1,4 +1,4 @@
-from core import app
+from bootstrap import app
 
 
 def main():

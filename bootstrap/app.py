@@ -1,8 +1,8 @@
 import logging
-import os
 
+from bootstrap.container import Container, load_container
+from bootstrap.meta import name, version
 from core.config import load_config
-from core.container import Container, load_container
 
 
 class Instance:
@@ -31,13 +31,3 @@ def init():
     logging.debug("Container loaded successfully.")
 
     return Instance(container)
-
-
-def name():
-    """Returns the name of the bot."""
-    return "tomsg_bot"
-
-
-def version():
-    """Returns the version of the bot."""
-    return os.getenv("VERSION", "undefined")

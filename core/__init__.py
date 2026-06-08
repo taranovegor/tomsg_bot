@@ -1,33 +1,31 @@
-from .parser.entity import (
+from .parser import (
+    Content,
+    DelegatingParser,
     Entity,
+    GIF,
+    HTMLMetaExtractor,
+    InvalidUrlError,
     Link,
+    MediaType,
+    ParseError,
+    Parser,
+    ParserNotFoundError,
     Photo,
     Video,
-    GIF,
-    Content,
-)
-from .parser.exception import (
-    InvalidUrlError,
-    ParserNotFoundError,
-    ParseError,
-)
-from .parser.meta import (
-    HTMLMetaExtractor,
-)
-from .parser.parser import (
-    Parser,
 )
 
 __all__ = [
+    "Content",
+    "DelegatingParser",
     "Entity",
+    "GIF",
+    "HTMLMetaExtractor",
+    "InvalidUrlError",
     "Link",
+    "MediaType",
+    "ParseError",
+    "Parser",
+    "ParserNotFoundError",
     "Photo",
     "Video",
-    "GIF",
-    "Content",
-    "InvalidUrlError",
-    "ParserNotFoundError",
-    "ParseError",
-    "HTMLMetaExtractor",
-    "Parser",
 ]

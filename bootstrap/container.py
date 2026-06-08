@@ -27,12 +27,12 @@ from parser import (
 
 from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
 
-from core import app
-from core import Parser
+from bootstrap import meta
+from core.parser import Parser
 from core.analytics.analytics import Analytics
 from core.analytics.ga import GoogleAnalytics
 from core.config import Config
-from core.parser.parser import DelegatingParser
+from core.parser import DelegatingParser
 from core.telega.message import MessageHandler as TelegaMessageHandler
 from core.telega.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
 
@@ -104,7 +104,7 @@ def __analytics_ga(container: Container) -> Analytics:
     return GoogleAnalytics(
         config.measurement_id,
         config.secret,
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         lambda x: hashlib.sha256(
             (str(x) + config.user_identifier_salt).encode()
         ).hexdigest(),
@@ -114,7 +114,7 @@ def __analytics_ga(container: Container) -> Analytics:
 def _files_media_downloader(_: Container) -> MediaDownloader:
     """MediaDownloader instance with a 2 GiB streaming cap and 5-minute timeout."""
     return MediaDownloader(
-        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
         timeout=300,
         max_bytes=2 * 1024 * 1024 * 1024,
     )
@@ -123,7 +123,7 @@ def _files_media_downloader(_: Container) -> MediaDownloader:
 def _files_file_resolver(container: Container) -> FileResolver:
     """FileResolver created using an inline RemoteFileValidator (not registered as a service)."""
     validator = RemoteFileValidator(
-        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
         2 * 1024 * 1024 * 1024,
     )
     return FileResolver(
@@ -193,7 +193,7 @@ def __app(container: Container) -> None:
 def __parser_cmtt(container: Container) -> Parser:
     """Initializes and returns a cmtt.Parser instance."""
     return cmtt.Parser(
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -201,7 +201,7 @@ def __parser_cmtt(container: Container) -> Parser:
 def __parser_habr(container: Container) -> Parser:
     """Initializes and returns a habr.Parser instance."""
     return habr.Parser(
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -214,7 +214,7 @@ def __parser_instagram(container: Container) -> Parser:
 
     return instagram.Parser(
         config.parser_url,
-        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
         cipher,
         timeout=container.config.parser_http_timeout,
     )
@@ -226,7 +226,7 @@ def __parser_reddit(container: Container) -> Parser:
     return reddit.Parser(
         config.client_id,
         config.client_secret,
-        f"{os.name}:{app.name()}:{app.version()} (by /u/{config.app_owner_username})",
+        f"{os.name}:{meta.name()}:{meta.version()} (by /u/{config.app_owner_username})",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -234,7 +234,7 @@ def __parser_reddit(container: Container) -> Parser:
 def __parser_redspecial(container: Container) -> Parser:
     """Initializes and returns a redspecial.Parser instance."""
     return redspecial.Parser(
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -245,7 +245,7 @@ def __parser_tiktok(container: Container) -> Parser:
     return tiktok.Parser(
         config.video_resource_url,
         config.thumbnail_resource_url,
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -253,7 +253,7 @@ def __parser_tiktok(container: Container) -> Parser:
 def __parser_trashbox(container: Container) -> Parser:
     """Initializes and returns a trashbox.Parser instance."""
     return trashbox.Parser(
-        f"{os.name}:{app.name()}:{app.version()}",
+        f"{os.name}:{meta.name()}:{meta.version()}",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -271,7 +271,7 @@ def __parser_tumblr(container: Container) -> Parser:
     config = container.config.tumblr
     return tumblr.Parser(
         config.api_key,
-        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -279,7 +279,7 @@ def __parser_tumblr(container: Container) -> Parser:
 def __parser_twitter(container: Container) -> Parser:
     """Initializes and returns a twitter.Parser instance."""
     return twitter.Parser(
-        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -289,7 +289,7 @@ def __parser_vk(container: Container) -> Parser:
     config = container.config.vk
     return vk.Parser(
         config.thumbnail_url,
-        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -299,7 +299,7 @@ def _parser_youtube(container: Container) -> Parser:
     config = container.config.youtube
     return youtube.Parser(
         config.api_key,
-        f"{os.name}:{app.name()}:{app.version()} TelegramBot (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
         timeout=container.config.parser_http_timeout,
     )
 
@@ -307,7 +307,7 @@ def _parser_youtube(container: Container) -> Parser:
 def _telega_inline_query_handler(container: Container) -> TelegaInlineQueryHandler:
     """TelegaInlineQueryHandler constructed from container services; validator created inline."""
     validator = RemoteFileValidator(
-        f"{os.name}:{app.name()}:{app.version()} (like TwitterBot)",
+        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
         20 * 1024 * 1024,
     )
     return TelegaInlineQueryHandler(

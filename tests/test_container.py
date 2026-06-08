@@ -8,14 +8,8 @@ parser_cmtt) before they surface at runtime.
 """
 import pytest
 
-# core.app must be imported before core.container to resolve the mutual import:
-# core.container does `from core import app`, and core.app does
-# `from core.container import Container, load_container`. Importing core.app first
-# ensures core.container loads fully before core.app needs Container.
-import core.app  # noqa: F401
-
-from core.container import load_container
-from core.parser.parser import DelegatingParser
+from bootstrap.container import load_container
+from core.parser import DelegatingParser
 from core.telega.renderer import MessageRenderer
 
 
