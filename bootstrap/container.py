@@ -33,7 +33,10 @@ from core.analytics.analytics import Analytics
 from core.analytics.ga import GoogleAnalytics
 from core.config import Config
 from core.parser import DelegatingParser
+from core.pipeline import Pipeline
+from core.telega import DOWNLOAD_FILE_SIZE_LIMIT, INLINE_FILE_SIZE_LIMIT
 from core.telega.message import MessageHandler as TelegaMessageHandler
+from core.telega.message import TelegramDelivery as TelegaDelivery
 from core.telega.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
 
 
@@ -112,19 +115,19 @@ def __analytics_ga(container: Container) -> Analytics:
 
 
 def _files_media_downloader(_: Container) -> MediaDownloader:
-    """MediaDownloader instance with a 2 GiB streaming cap and 5-minute timeout."""
+    """MediaDownloader with per-platform streaming cap and timeout."""
     return MediaDownloader(
         f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
         timeout=300,
-        max_bytes=2 * 1024 * 1024 * 1024,
+        max_bytes=DOWNLOAD_FILE_SIZE_LIMIT,
     )
 
 
 def _files_file_resolver(container: Container) -> FileResolver:
-    """FileResolver created using an inline RemoteFileValidator (not registered as a service)."""
+    """FileResolver with per-platform size limit."""
     validator = RemoteFileValidator(
         f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
-        2 * 1024 * 1024 * 1024,
+        DOWNLOAD_FILE_SIZE_LIMIT,
     )
     return FileResolver(
         validator,
@@ -308,7 +311,7 @@ def _telega_inline_query_handler(container: Container) -> TelegaInlineQueryHandl
     """TelegaInlineQueryHandler constructed from container services; validator created inline."""
     validator = RemoteFileValidator(
         f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
-        20 * 1024 * 1024,
+        INLINE_FILE_SIZE_LIMIT,
     )
     return TelegaInlineQueryHandler(
         container.get("parser_delegating_parser"),
@@ -318,13 +321,25 @@ def _telega_inline_query_handler(container: Container) -> TelegaInlineQueryHandl
     )
 
 
+def _pipeline(container: Container) -> Pipeline:
+    """Neutral content pipeline shared by all platforms."""
+    return Pipeline(
+        container.get("parser_delegating_parser"),
+        container.get("files__file_resolver"),
+        container.get("media__video_processor"),
+    )
+
+
+def _telega_delivery(container: Container) -> TelegaDelivery:
+    """Telegram-specific delivery using shared renderer."""
+    return TelegaDelivery(container.get("telega__message_renderer"))
+
+
 def _telega_message_handler(container: Container) -> TelegaMessageHandler:
     """TelegaMessageHandler constructed from container services."""
     return TelegaMessageHandler(
-        container.get("parser_delegating_parser"),
-        container.get("telega__message_renderer"),
-        container.get("files__file_resolver"),
-        container.get("media__video_processor"),
+        container.get("pipeline"),
+        container.get("telega__delivery"),
         container.get("analytics_ga"),
     )
 
@@ -349,6 +364,8 @@ def load_container(config):
 
     container.register("media__video_processor", _media_video_processor)
 
+    container.register("pipeline", _pipeline)
+
     container.register("parser_delegating_parser", __parser_delegating_parser)
     container.register("parser__cmtt", __parser_cmtt)
     container.register("parser__habr", __parser_habr)
@@ -364,6 +381,7 @@ def load_container(config):
     container.register("parser__youtube", _parser_youtube)
 
     container.register("telega__inline_query_handler", _telega_inline_query_handler)
+    container.register("telega__delivery", _telega_delivery)
     container.register("telega__message_handler", _telega_message_handler)
     container.register("telega__message_renderer", _telega_message_renderer)
 

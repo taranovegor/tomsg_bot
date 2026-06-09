@@ -1,0 +1,18 @@
+"""
+Conformance tests: verify that platform adapters actually implement the ports.
+
+A failure here means a class changed its signature or stopped inheriting
+from the port — the DI wiring will break at runtime.
+"""
+from core.ports import Renderer, Delivery
+from core.telega.renderer import MessageRenderer
+from core.telega.message import TelegramDelivery
+
+
+def test_message_renderer_is_renderer():
+    assert issubclass(MessageRenderer, Renderer)
+    assert isinstance(MessageRenderer(), Renderer)
+
+
+def test_telegram_delivery_is_delivery():
+    assert issubclass(TelegramDelivery, Delivery)

@@ -1,12 +1,12 @@
 import html
-
-from core import Content, Link
 from typing import Optional
 
+from core import Content, Link
+from core.ports import Renderer
 from core.utils.htmls import escape_non_tags
 
 
-class MessageRenderer:
+class MessageRenderer(Renderer):
     """
     Render Content into a compact, human-readable string with optional HTML links.
     """
