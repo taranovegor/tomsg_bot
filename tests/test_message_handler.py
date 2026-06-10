@@ -13,16 +13,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.files.entity import FileInfo
-from core.parser.entity import Content, GIF, Photo, Link
-from core.parser.exception import InvalidUrlError
-from core.parser import ParserNotFoundError
-from core.pipeline import PipelineResult
-from core.telega.message import TelegramDelivery, MessageHandler
+from core.domain.entity import Content, GIF, Photo, Link, FileInfo, PipelineResult
+from core.exceptions import InvalidUrlError, ParserNotFoundError
+from platforms.telegram.message import TelegramDelivery, MessageHandler
 
 
 def _make_delivery():
-    from core.telega.renderer import MessageRenderer
+    from platforms.telegram.renderer import MessageRenderer
 
     return TelegramDelivery(renderer=MessageRenderer())
 
@@ -146,7 +143,7 @@ class TestGifSentSeparately:
 class TestSendContentTaskCallback:
     @pytest.mark.asyncio
     async def test_log_task_exception_callback_logs_on_failure(self):
-        from core.telega.message import _log_task_exception
+        from platforms.telegram.message import _log_task_exception
 
         async def failing():
             raise RuntimeError("deliberate explosion")
@@ -154,7 +151,7 @@ class TestSendContentTaskCallback:
         task = asyncio.create_task(failing())
         task.add_done_callback(_log_task_exception)
 
-        with patch("core.telega.message.logging.error") as mock_error:
+        with patch("platforms.telegram.message.logging.error") as mock_error:
             try:
                 await asyncio.wait_for(asyncio.shield(task), timeout=1.0)
             except (RuntimeError, asyncio.TimeoutError):
@@ -168,7 +165,7 @@ class TestSendContentTaskCallback:
 
     @pytest.mark.asyncio
     async def test_log_task_exception_callback_silent_on_success(self):
-        from core.telega.message import _log_task_exception
+        from platforms.telegram.message import _log_task_exception
 
         async def succeeding():
             return 42
@@ -176,7 +173,7 @@ class TestSendContentTaskCallback:
         task = asyncio.create_task(succeeding())
         task.add_done_callback(_log_task_exception)
 
-        with patch("core.telega.message.logging.error") as mock_error:
+        with patch("platforms.telegram.message.logging.error") as mock_error:
             await asyncio.wait_for(asyncio.shield(task), timeout=1.0)
 
         mock_error.assert_not_called()
@@ -307,10 +304,10 @@ class TestMessageHandlerHandle:
         events_instance = MagicMock()
         events_instance.add = MagicMock(return_value=events_instance)
 
-        with patch("core.telega.message.Events", return_value=events_instance):
+        with patch("platforms.telegram.message.Events", return_value=events_instance):
             await handler.handle(update, context)
 
-        from core.analytics.analytics import Events as EventsReal
+        from infra.analytics.analytics import Events as EventsReal
         args = events_instance.add.call_args_list
         page_view_calls = [a for a in args if a[0][0].name == "page_view"]
         assert len(page_view_calls) == 1

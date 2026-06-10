@@ -10,7 +10,7 @@ from core import (
     Content,
     Link,
 )
-from parser.habr.html_processor import HTMLProcessor
+from parsers.habr.html_processor import HTMLProcessor
 
 
 class Parser(BaseParser):

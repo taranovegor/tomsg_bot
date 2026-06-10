@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from core.parser.entity import Content
+from core.domain.entity import Content
 
 
 class Renderer(ABC):

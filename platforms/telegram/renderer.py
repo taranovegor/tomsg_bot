@@ -3,7 +3,7 @@ from typing import Optional
 
 from core import Content, Link
 from core.ports import Renderer
-from core.utils.htmls import escape_non_tags
+from shared.htmls import escape_non_tags
 
 
 class MessageRenderer(Renderer):

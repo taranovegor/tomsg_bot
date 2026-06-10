@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from .entity import Content
-from .exception import ParserNotFoundError
+from core.domain.entity import Content
+from core.exceptions import ParserNotFoundError
 
 
 class Parser(ABC):

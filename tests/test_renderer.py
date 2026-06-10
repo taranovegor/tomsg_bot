@@ -12,8 +12,8 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from core.parser.entity import Content, Link, Photo
-from core.telega.renderer import MessageRenderer
+from core.domain.entity import Content, Link, Photo
+from platforms.telegram.renderer import MessageRenderer
 
 
 @pytest.fixture

@@ -18,9 +18,9 @@ from datetime import datetime, timezone
 import pytest
 import responses as responses_lib
 
-from core.parser.entity import Content, Photo, Video
-from core.parser.exception import ParseError, InvalidUrlError
-from parser.twitter.parser import Parser as TwitterParser
+from core.domain.entity import Content, Photo, Video
+from core.exceptions import ParseError, InvalidUrlError
+from parsers.twitter.parser import Parser as TwitterParser
 
 _F = pathlib.Path(__file__).parent.parent / "fixtures" / "twitter"
 

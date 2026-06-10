@@ -4,13 +4,13 @@ import os
 import tempfile
 from pathlib import Path
 
-from core.files.downloader import MediaDownloader
-from core.files.resolver import FileResolver
-from core.files.storage import LocalStorage
-from core.files.validator import RemoteFileValidator
-from core.media.processor import VideoProcessor
-from core.telega.renderer import MessageRenderer
-from parser import (
+from infra.files.downloader import MediaDownloader
+from infra.files.resolver import FileResolver
+from infra.files.storage import LocalStorage
+from infra.files.validator import RemoteFileValidator
+from infra.media.processor import VideoProcessor
+from platforms.telegram.renderer import MessageRenderer
+from parsers import (
     cmtt,
     habr,
     instagram,
@@ -28,16 +28,16 @@ from parser import (
 from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
 
 from bootstrap import meta
-from core.parser import Parser
-from core.analytics.analytics import Analytics
-from core.analytics.ga import GoogleAnalytics
+from core.ports import Parser
+from infra.analytics.analytics import Analytics
+from infra.analytics.ga import GoogleAnalytics
 from core.config import Config
-from core.parser import DelegatingParser
+from core.ports import DelegatingParser
 from core.pipeline import Pipeline
-from core.telega import DOWNLOAD_FILE_SIZE_LIMIT, INLINE_FILE_SIZE_LIMIT
-from core.telega.message import MessageHandler as TelegaMessageHandler
-from core.telega.message import TelegramDelivery as TelegaDelivery
-from core.telega.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
+from platforms.telegram import DOWNLOAD_FILE_SIZE_LIMIT, INLINE_FILE_SIZE_LIMIT
+from platforms.telegram.message import MessageHandler as TelegaMessageHandler
+from platforms.telegram.message import TelegramDelivery as TelegaDelivery
+from platforms.telegram.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
 
 
 class Container:

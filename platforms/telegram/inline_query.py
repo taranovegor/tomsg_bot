@@ -14,14 +14,14 @@ from telegram import (
 from telegram.constants import ParseMode
 
 from core import Parser, InvalidUrlError, ParserNotFoundError
-from core.analytics.analytics import Analytics, Events, Event
-from core.files.exception import FileTooLarge
-from core.files.validator import RemoteFileValidator
-from core.parser.entity import Content, MediaType
-from core.telega.renderer import MessageRenderer
-from core.utils.htmls import strip_tags
-from core.utils.uid import generate_uuid
-from core.utils.urls import is_valid_url
+from infra.analytics.analytics import Analytics, Events, Event
+from infra.files.exception import FileTooLarge
+from infra.files.validator import RemoteFileValidator
+from core.domain.entity import Content, MediaType
+from platforms.telegram.renderer import MessageRenderer
+from shared.htmls import strip_tags
+from shared.uid import generate_uuid
+from shared.urls import is_valid_url
 
 
 class InlineQueryHandler:

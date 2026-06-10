@@ -1,7 +1,9 @@
 import enum
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 
 class MediaType(str, enum.Enum):
@@ -90,3 +92,29 @@ class Content(Entity):
     def type() -> str:
         """Returns the type of the entity as 'content'."""
         return MediaType.CONTENT
+
+
+@dataclass(frozen=True)
+class FileInfo:
+    """Immutable file metadata."""
+
+    path: Path
+    size: int
+    mime_type: Optional[str] = None
+    original_url: Optional[str] = None
+
+
+@dataclass
+class VideoMeta:
+    """Stores metadata for a video."""
+
+    width: Optional[int]
+    height: Optional[int]
+    duration: Optional[int] = None
+
+
+@dataclass
+class PipelineResult:
+    content: Content
+    resolved_media: list[tuple[Entity, FileInfo]] = field(default_factory=list)
+    video_meta: dict[str, VideoMeta] = field(default_factory=dict)

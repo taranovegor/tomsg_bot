@@ -15,9 +15,9 @@ from datetime import datetime
 import pytest
 import responses as responses_lib
 
-from core.parser.entity import Content, Link
-from core.parser.exception import ParseError
-from parser.cmtt.parser import Parser as CmttParser
+from core.domain.entity import Content, Link
+from core.exceptions import ParseError
+from parsers.cmtt.parser import Parser as CmttParser
 
 FIXTURE = json.loads(
     (pathlib.Path(__file__).parent.parent / "fixtures" / "cmtt" / "comment_text_only.json").read_text()

@@ -7,9 +7,9 @@ URL pattern or delegation order changes.
 """
 import pytest
 
-from core.parser.parser import DelegatingParser
-from parser import cmtt, habr, instagram, reddit, redspecial, tiktok, trashbox, truthsocial, tumblr, twitter, vk, youtube
-from parser.instagram.cipher import Cipher as InstagramCipher
+from core.ports.parser import DelegatingParser
+from parsers import cmtt, habr, instagram, reddit, redspecial, tiktok, trashbox, truthsocial, tumblr, twitter, vk, youtube
+from parsers.instagram.cipher import Cipher as InstagramCipher
 
 
 # Parser instances with minimal (stub) configuration
@@ -84,63 +84,63 @@ def _make_delegating_parser() -> DelegatingParser:
 ROUTING_TABLE = [
     (
         "https://x.com/testuser/status/1234567890",
-        "parser.twitter",
+        "parsers.twitter",
     ),
     (
         "https://twitter.com/testuser/status/9876543210",
-        "parser.twitter",
+        "parsers.twitter",
     ),
     (
         "https://www.instagram.com/p/ABC123xyz/",
-        "parser.instagram",
+        "parsers.instagram",
     ),
     (
         "https://www.instagram.com/reels/ABC123xyz/",
-        "parser.instagram",
+        "parsers.instagram",
     ),
     (
         "https://dtf.ru/tech/some-article-slug?comment=12345",
-        "parser.cmtt",
+        "parsers.cmtt",
     ),
     (
         "https://vc.ru/finance/some-slug?comment=99999",
-        "parser.cmtt",
+        "parsers.cmtt",
     ),
     (
         "https://habr.com/ru/articles/923922/#comment_28543112",
-        "parser.habr",
+        "parsers.habr",
     ),
     (
         "https://www.reddit.com/r/Python/comments/abcdef/post_title/",
-        "parser.reddit",
+        "parsers.reddit",
     ),
     (
         "https://redspecial.ru/topic/example#div_comment_42",
-        "parser.redspecial",
+        "parsers.redspecial",
     ),
     (
         "https://www.tiktok.com/@user/video/1234567890123456789",
-        "parser.tiktok",
+        "parsers.tiktok",
     ),
     (
         "https://trashbox.ru/topic/example#div_comment_42",
-        "parser.trashbox",
+        "parsers.trashbox",
     ),
     (
         "https://truthsocial.com/@user/posts/1234567890",
-        "parser.truthsocial",
+        "parsers.truthsocial",
     ),
     (
         "https://testblog.tumblr.com/post/123456789",
-        "parser.tumblr",
+        "parsers.tumblr",
     ),
     (
         "https://vk.com/clip-12345_67890",
-        "parser.vk",
+        "parsers.vk",
     ),
     (
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ&lc=UgxTestCommentId",
-        "parser.youtube",
+        "parsers.youtube",
     ),
 ]
 
@@ -169,18 +169,18 @@ def test_routing_to_correct_parser(url, expected_module):
     one — this test will fail loudly instead.
     """
     all_parsers = {
-        "parser.twitter": _make_twitter(),
-        "parser.instagram": _make_instagram(),
-        "parser.cmtt": _make_cmtt(),
-        "parser.habr": _make_habr(),
-        "parser.reddit": _make_reddit(),
-        "parser.redspecial": _make_redspecial(),
-        "parser.tiktok": _make_tiktok(),
-        "parser.trashbox": _make_trashbox(),
-        "parser.truthsocial": _make_truthsocial(),
-        "parser.tumblr": _make_tumblr(),
-        "parser.vk": _make_vk(),
-        "parser.youtube": _make_youtube(),
+        "parsers.twitter": _make_twitter(),
+        "parsers.instagram": _make_instagram(),
+        "parsers.cmtt": _make_cmtt(),
+        "parsers.habr": _make_habr(),
+        "parsers.reddit": _make_reddit(),
+        "parsers.redspecial": _make_redspecial(),
+        "parsers.tiktok": _make_tiktok(),
+        "parsers.trashbox": _make_trashbox(),
+        "parsers.truthsocial": _make_truthsocial(),
+        "parsers.tumblr": _make_tumblr(),
+        "parsers.vk": _make_vk(),
+        "parsers.youtube": _make_youtube(),
     }
 
     claiming = [mod for mod, p in all_parsers.items() if p.supports(url)]

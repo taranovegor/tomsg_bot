@@ -1,7 +1,7 @@
 import logging
 import aiohttp
 
-from core.analytics.analytics import Analytics, Events
+from infra.analytics.analytics import Analytics, Events
 
 
 class GoogleAnalytics(Analytics):

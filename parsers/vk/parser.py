@@ -9,8 +9,8 @@ from core import (
     ParseError,
     Link,
     Content,
-    HTMLMetaExtractor,
 )
+from shared.meta import HTMLMetaExtractor
 
 
 class Parser(BaseParser):

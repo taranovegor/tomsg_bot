@@ -44,15 +44,15 @@ class TestTwitterTimeout:
             },
         )
         import requests as _requests
-        from parser.twitter.parser import Parser
+        from parsers.twitter.parser import Parser
 
-        with patch("parser.twitter.parser.requests.get", wraps=_requests.get) as mock_get:
+        with patch("parsers.twitter.parser.requests.get", wraps=_requests.get) as mock_get:
             Parser("test-agent", timeout=99).parse("https://x.com/user/status/123")
 
         _assert_timeout_in_call(mock_get, expected_timeout=99)
 
     def test_default_timeout_is_thirty(self):
-        from parser.twitter.parser import Parser
+        from parsers.twitter.parser import Parser
         assert Parser("agent").timeout == 30
 
 
@@ -65,10 +65,10 @@ class TestInstagramTimeout:
             json={"video": [{"video": "http://v/v.mp4", "thumbnail": "http://v/t.jpg"}], "image": []},
         )
         import requests as _requests
-        from parser.instagram.parser import Parser
-        from parser.instagram.cipher import Cipher
+        from parsers.instagram.parser import Parser
+        from parsers.instagram.cipher import Cipher
 
-        with patch("parser.instagram.parser.requests.get", wraps=_requests.get) as mock_get:
+        with patch("parsers.instagram.parser.requests.get", wraps=_requests.get) as mock_get:
             Parser(
                 "http://ig.test/parse", "test-agent", Cipher("a" * 16), timeout=99
             ).parse("https://www.instagram.com/p/ABC/")
@@ -76,8 +76,8 @@ class TestInstagramTimeout:
         _assert_timeout_in_call(mock_get, expected_timeout=99)
 
     def test_default_timeout_is_thirty(self):
-        from parser.instagram.parser import Parser
-        from parser.instagram.cipher import Cipher
+        from parsers.instagram.parser import Parser
+        from parsers.instagram.cipher import Cipher
         assert Parser("http://x.test", "agent", Cipher("a" * 16)).timeout == 30
 
 
@@ -93,15 +93,15 @@ class TestCmttTimeout:
             json=fixture,
         )
         import requests as _requests
-        from parser.cmtt.parser import Parser
+        from parsers.cmtt.parser import Parser
 
-        with patch("parser.cmtt.parser.requests.get", wraps=_requests.get) as mock_get:
+        with patch("parsers.cmtt.parser.requests.get", wraps=_requests.get) as mock_get:
             Parser("test-agent", timeout=99).parse("https://dtf.ru/life/x?comment=49646537")
 
         _assert_timeout_in_call(mock_get, expected_timeout=99)
 
     def test_default_timeout_is_thirty(self):
-        from parser.cmtt.parser import Parser
+        from parsers.cmtt.parser import Parser
         assert Parser("agent").timeout == 30
 
 
