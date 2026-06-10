@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from core.pipeline import PipelineResult
+from core.domain import PipelineResult
 
 
 class Delivery(ABC):

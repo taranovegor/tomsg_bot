@@ -14,16 +14,13 @@ from telegram import (
 from telegram.constants import ChatAction, ParseMode, ChatType
 from telegram.ext import ContextTypes
 
-from core.analytics.analytics import Events, Event, Analytics
-from core.files.entity import FileInfo
-from core.media.entity import VideoMeta
-from core.parser.entity import Entity, Video, GIF, Photo
-from core.parser.exception import InvalidUrlError
-from core.parser import ParserNotFoundError
-from core.pipeline import Pipeline, PipelineResult
+from infra.analytics.analytics import Events, Event, Analytics
+from core.domain.entity import Entity, Video, GIF, Photo, FileInfo, VideoMeta, PipelineResult
+from core.exceptions import InvalidUrlError, ParserNotFoundError
+from core.pipeline import Pipeline
 from core.ports.delivery import Delivery
-from core.telega import MEDIA_GROUP_CHUNK_SIZE
-from core.telega.renderer import MessageRenderer
+from platforms.telegram import MEDIA_GROUP_CHUNK_SIZE
+from platforms.telegram.renderer import MessageRenderer
 
 
 def _log_task_exception(task: asyncio.Task) -> None:

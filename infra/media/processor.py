@@ -5,8 +5,8 @@ from typing import Optional
 import uuid
 import asyncio
 
-from core.files.storage import LocalStorage
-from core.media.entity import VideoMeta
+from infra.files.storage import LocalStorage
+from infra.media.entity import VideoMeta
 
 
 class VideoProcessor:

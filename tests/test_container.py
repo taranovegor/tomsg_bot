@@ -9,8 +9,8 @@ parser_cmtt) before they surface at runtime.
 import pytest
 
 from bootstrap.container import load_container
-from core.parser import DelegatingParser
-from core.telega.renderer import MessageRenderer
+from core.ports import DelegatingParser
+from platforms.telegram.renderer import MessageRenderer
 
 
 def test_load_container_returns_container(stub_config):

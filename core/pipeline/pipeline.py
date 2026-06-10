@@ -1,22 +1,11 @@
 import asyncio
 import logging
-from dataclasses import dataclass, field
-
-from core.files.entity import FileInfo
-from core.files.resolver import FileResolver
-from core.media.entity import VideoMeta
-from core.media.processor import VideoProcessor
-from core.parser import Parser, ParserNotFoundError
-from core.parser.entity import Content, Entity, Video
-from core.parser.exception import InvalidUrlError
-from core.utils.urls import is_valid_url
-
-
-@dataclass
-class PipelineResult:
-    content: Content
-    resolved_media: list[tuple[Entity, FileInfo]] = field(default_factory=list)
-    video_meta: dict[str, VideoMeta] = field(default_factory=dict)
+from infra.files.resolver import FileResolver
+from infra.media.processor import VideoProcessor
+from core.ports import Parser
+from core.domain.entity import Content, Entity, Video, FileInfo, VideoMeta, PipelineResult
+from core.exceptions import InvalidUrlError, ParserNotFoundError
+from shared.urls import is_valid_url
 
 
 class Pipeline:

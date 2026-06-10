@@ -8,11 +8,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from core.files.entity import FileInfo
-from core.media.entity import VideoMeta
-from core.parser.entity import Content, Photo, Video, GIF, Link
-from core.parser.exception import InvalidUrlError
-from core.pipeline import Pipeline, PipelineResult
+from core.domain.entity import Content, Photo, Video, GIF, Link, FileInfo, VideoMeta, PipelineResult
+from core.exceptions import InvalidUrlError
+from core.pipeline import Pipeline
 
 
 # ---------------------------------------------------------------------------
@@ -34,7 +32,7 @@ class FakeFailingParser:
 
     def parse(self, url: str) -> Content:
         msg = f"Parser not found for string: {url}"
-        from core.parser.exception import ParserNotFoundError
+        from core.exceptions import ParserNotFoundError
         raise ParserNotFoundError(msg)
 
 
@@ -100,7 +98,7 @@ class TestPipelineParsing:
             file_resolver=FakeFileResolver(),
             video_processor=FakeVideoProcessor(),
         )
-        from core.parser.exception import ParserNotFoundError
+        from core.exceptions import ParserNotFoundError
         with pytest.raises(ParserNotFoundError):
             await pipeline.run("https://unsupported.example.com")
 

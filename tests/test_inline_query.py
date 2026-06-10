@@ -11,8 +11,8 @@ import pytest
 
 
 def _make_handler():
-    from core.telega.inline_query import InlineQueryHandler
-    from core.telega.renderer import MessageRenderer
+    from platforms.telegram.inline_query import InlineQueryHandler
+    from platforms.telegram.renderer import MessageRenderer
 
     validator = MagicMock()
     validator.validate_size = AsyncMock(return_value=None)
@@ -38,7 +38,7 @@ def _make_inline_query(url: str, user_id: int = 7):
 class TestGifThumbnailFallback:
     @pytest.mark.asyncio
     async def test_gif_without_thumbnail_uses_resource_url(self):
-        from core.parser.entity import Content, GIF
+        from core.domain.entity import Content, GIF
         from telegram import InlineQueryResultGif
 
         handler = _make_handler()
@@ -65,7 +65,7 @@ class TestGifThumbnailFallback:
 
     @pytest.mark.asyncio
     async def test_gif_with_explicit_thumbnail_uses_that_url(self):
-        from core.parser.entity import Content, GIF
+        from core.domain.entity import Content, GIF
         from telegram import InlineQueryResultGif
 
         handler = _make_handler()
@@ -93,7 +93,7 @@ class TestGifThumbnailFallback:
 class TestVideoThumbnailFallback:
     @pytest.mark.asyncio
     async def test_video_without_thumbnail_uses_resource_url(self):
-        from core.parser.entity import Content, Video
+        from core.domain.entity import Content, Video
         from telegram import InlineQueryResultVideo
 
         handler = _make_handler()
@@ -120,7 +120,7 @@ class TestVideoThumbnailFallback:
 
     @pytest.mark.asyncio
     async def test_video_with_explicit_thumbnail_uses_that_url(self):
-        from core.parser.entity import Content, Video
+        from core.domain.entity import Content, Video
         from telegram import InlineQueryResultVideo
 
         handler = _make_handler()

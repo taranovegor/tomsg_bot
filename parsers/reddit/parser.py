@@ -11,7 +11,7 @@ from core import (
     Link,
     InvalidUrlError,
 )
-from parser.reddit.html_adapter import HTMLNodeAdapter, process_node
+from parsers.reddit.html_adapter import HTMLNodeAdapter, process_node
 
 
 class Parser(BaseParser):

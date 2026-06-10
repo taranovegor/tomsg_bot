@@ -13,14 +13,14 @@ import pytest
 
 class TestMediaDownloaderConstructor:
     def test_accepts_separate_timeout_and_max_bytes(self):
-        from core.files.downloader import MediaDownloader
+        from infra.files.downloader import MediaDownloader
 
         dl = MediaDownloader("agent", timeout=120, max_bytes=1024)
         assert dl.timeout == 120
         assert dl.max_bytes == 1024
 
     def test_default_max_bytes_is_zero_meaning_no_limit(self):
-        from core.files.downloader import MediaDownloader
+        from infra.files.downloader import MediaDownloader
 
         dl = MediaDownloader("agent")
         assert dl.max_bytes == 0
@@ -54,14 +54,14 @@ class TestMediaDownloaderStreamingLimit:
     @pytest.mark.asyncio
     async def test_raises_file_too_large_when_stream_exceeds_max_bytes(self, tmp_path):
         """FileTooLarge must fire mid-stream even without a Content-Length header."""
-        from core.files.downloader import MediaDownloader
-        from core.files.exception import FileTooLarge
+        from infra.files.downloader import MediaDownloader
+        from infra.files.exception import FileTooLarge
 
         dl = MediaDownloader("agent", timeout=30, max_bytes=10)
         dest = str(tmp_path / "out.bin")
         session_mock = self._make_session_mock([b"12345678", b"12345678"])  # 16 bytes > 10
 
-        with patch("core.files.downloader.aiohttp.ClientSession", return_value=session_mock):
+        with patch("infra.files.downloader.aiohttp.ClientSession", return_value=session_mock):
             with pytest.raises(FileTooLarge):
                 await dl.download("http://example.com/big.bin", dest)
 
@@ -69,13 +69,13 @@ class TestMediaDownloaderStreamingLimit:
 
     @pytest.mark.asyncio
     async def test_succeeds_when_within_max_bytes(self, tmp_path):
-        from core.files.downloader import MediaDownloader
+        from infra.files.downloader import MediaDownloader
 
         dl = MediaDownloader("agent", timeout=30, max_bytes=100)
         dest = str(tmp_path / "out.bin")
         session_mock = self._make_session_mock([b"hello"])
 
-        with patch("core.files.downloader.aiohttp.ClientSession", return_value=session_mock):
+        with patch("infra.files.downloader.aiohttp.ClientSession", return_value=session_mock):
             written = await dl.download("http://example.com/small.bin", dest)
 
         assert written == 5
@@ -84,13 +84,13 @@ class TestMediaDownloaderStreamingLimit:
     @pytest.mark.asyncio
     async def test_zero_max_bytes_never_raises(self, tmp_path):
         """max_bytes=0 (default) disables the size check entirely."""
-        from core.files.downloader import MediaDownloader
+        from infra.files.downloader import MediaDownloader
 
         dl = MediaDownloader("agent", timeout=30, max_bytes=0)
         dest = str(tmp_path / "out.bin")
         session_mock = self._make_session_mock([b"x" * 1024])
 
-        with patch("core.files.downloader.aiohttp.ClientSession", return_value=session_mock):
+        with patch("infra.files.downloader.aiohttp.ClientSession", return_value=session_mock):
             written = await dl.download("http://example.com/big.bin", dest)
 
         assert written == 1024
@@ -102,7 +102,7 @@ class TestContainerWiresDownloaderCorrectly:
         The downloader must have a sane timeout and a real max_bytes cap.
         """
         from bootstrap.container import load_container
-        from core.files.downloader import MediaDownloader
+        from infra.files.downloader import MediaDownloader
 
         container = load_container(stub_config)
         dl = container.get("files__media_downloader")

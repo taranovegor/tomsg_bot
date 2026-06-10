@@ -5,8 +5,8 @@ A failure here means a class changed its signature or stopped inheriting
 from the port — the DI wiring will break at runtime.
 """
 from core.ports import Renderer, Delivery
-from core.telega.renderer import MessageRenderer
-from core.telega.message import TelegramDelivery
+from platforms.telegram.renderer import MessageRenderer
+from platforms.telegram.message import TelegramDelivery
 
 
 def test_message_renderer_is_renderer():

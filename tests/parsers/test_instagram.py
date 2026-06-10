@@ -17,11 +17,11 @@ import pathlib
 import pytest
 import responses as responses_lib
 
-from core.parser.entity import Content, Video, Photo
-from core.parser.exception import ParseError
-from parser.instagram.cipher import Cipher
-from parser.instagram.parser import Parser as InstagramParser
+from core.domain.entity import Content, Video, Photo
+from core.exceptions import ParseError
+from parsers.instagram.cipher import Cipher
 
+from parsers.instagram.parser import Parser as InstagramParser
 _F = pathlib.Path(__file__).parent.parent / "fixtures" / "instagram"
 
 REEL_FIXTURE    = json.loads((_F / "reel_video.json").read_text())

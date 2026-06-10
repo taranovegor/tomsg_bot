@@ -1,17 +1,20 @@
-from .parser import (
+from .domain import (
     Content,
-    DelegatingParser,
     Entity,
     GIF,
-    HTMLMetaExtractor,
-    InvalidUrlError,
     Link,
     MediaType,
-    ParseError,
-    Parser,
-    ParserNotFoundError,
     Photo,
     Video,
+)
+from .exceptions import (
+    InvalidUrlError,
+    ParseError,
+    ParserNotFoundError,
+)
+from .ports import (
+    DelegatingParser,
+    Parser,
 )
 
 __all__ = [
@@ -19,7 +22,6 @@ __all__ = [
     "DelegatingParser",
     "Entity",
     "GIF",
-    "HTMLMetaExtractor",
     "InvalidUrlError",
     "Link",
     "MediaType",
