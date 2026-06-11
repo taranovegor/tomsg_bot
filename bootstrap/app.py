@@ -1,7 +1,7 @@
 import logging
 
 from bootstrap.container import Container, load_container
-from bootstrap.meta import name, version
+from shared.info import name, version
 from core.config import load_config
 
 

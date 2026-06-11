@@ -3,14 +3,31 @@ Smoke tests for load_container().
 
 Goal: verify that all services are registered under the correct string keys and
 that the DelegatingParser sub-graph resolves without any KeyError or
-initialization crash. This catches key-name mismatches (e.g. parser__cmtt vs
-parser_cmtt) before they surface at runtime.
+initialization crash. This catches key-name mismatches before they surface
+at runtime.
 """
 import pytest
 
+from bootstrap import keys as K
 from bootstrap.container import load_container
 from core.ports import DelegatingParser
 from platforms.telegram.renderer import MessageRenderer
+
+
+EXPECTED_PARSERS = {
+    "cmtt",
+    "habr",
+    "instagram",
+    "reddit",
+    "redspecial",
+    "tiktok",
+    "trashbox",
+    "truthsocial",
+    "tumblr",
+    "twitter",
+    "vk",
+    "youtube",
+}
 
 
 def test_load_container_returns_container(stub_config):
@@ -19,48 +36,53 @@ def test_load_container_returns_container(stub_config):
     assert container is not None
 
 
-def test_parser_delegating_parser_resolves(stub_config):
+def test_parser_delegating_resolves(stub_config):
     """
-    Resolving parser_delegating_parser cascades through all 12 individual
-    parser registrations. A KeyError here means a registration key mismatch.
+    Resolving parser_delegating cascades through all individual parser
+    registrations. A KeyError here means a registration key mismatch.
     """
     container = load_container(stub_config)
-    dp = container.get("parser_delegating_parser")
+    dp = container.get(K.PARSER_DELEGATING)
     assert isinstance(dp, DelegatingParser)
 
 
-def test_parser_delegating_parser_has_all_parsers(stub_config):
-    """DelegatingParser contains exactly 12 parsers (one per supported platform)."""
+def test_delegating_contains_expected_parsers(stub_config):
+    """
+    Every parser in EXPECTED_PARSERS must be present in DelegatingParser's
+    list. A missing parser (broken import, missing @register) is caught by
+    set comparison — not just a tautological count check.
+    """
     container = load_container(stub_config)
-    dp = container.get("parser_delegating_parser")
-    assert len(dp.parsers) == 12
+    dp = container.get(K.PARSER_DELEGATING)
+    registered = set(type(p).__module__.split(".")[1] for p in dp.parsers)
+    missing = EXPECTED_PARSERS - registered
+    extra = registered - EXPECTED_PARSERS
+    assert not missing, f"Parsers missing from DelegatingParser: {missing}"
+    assert not extra, f"Unexpected parsers in DelegatingParser: {extra}"
+
+
+def test_delegating_has_no_duplicates(stub_config):
+    """Each parser appears exactly once in the DelegatingParser list."""
+    container = load_container(stub_config)
+    dp = container.get(K.PARSER_DELEGATING)
+    modules = [type(p).__module__ for p in dp.parsers]
+    assert len(modules) == len(set(modules)), (
+        f"Duplicate parsers detected: {modules}"
+    )
 
 
 def test_message_renderer_resolves(stub_config):
-    """telega__message_renderer resolves to a MessageRenderer."""
+    """telega_message_renderer resolves to a MessageRenderer."""
     container = load_container(stub_config)
-    renderer = container.get("telega__message_renderer")
+    renderer = container.get(K.TELEGA_MESSAGE_RENDERER)
     assert isinstance(renderer, MessageRenderer)
 
 
 def test_all_parser_keys_resolve(stub_config):
-    """Every individual parser service key registered in load_container resolves."""
-    parser_keys = [
-        "parser__cmtt",
-        "parser__habr",
-        "parser__instagram",
-        "parser__reddit",
-        "parser_redspecial",
-        "parser__tiktok",
-        "parser__trashbox",
-        "parser__truthsocial",
-        "parser__tumblr",
-        "parser__twitter",
-        "parser__vk",
-        "parser__youtube",
-    ]
+    """Every expected parser key resolves without error."""
     container = load_container(stub_config)
-    for key in parser_keys:
+    for name in sorted(EXPECTED_PARSERS):
+        key = K.PARSER_TEMPLATE.format(name)
         service = container.get(key)
         assert service is not None, f"Service {key!r} resolved to None"
 
@@ -68,6 +90,6 @@ def test_all_parser_keys_resolve(stub_config):
 def test_delegating_parser_is_singleton(stub_config):
     """Repeated get() calls return the same DelegatingParser instance (lazy singleton)."""
     container = load_container(stub_config)
-    dp1 = container.get("parser_delegating_parser")
-    dp2 = container.get("parser_delegating_parser")
+    dp1 = container.get(K.PARSER_DELEGATING)
+    dp2 = container.get(K.PARSER_DELEGATING)
     assert dp1 is dp2
