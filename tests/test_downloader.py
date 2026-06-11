@@ -104,8 +104,9 @@ class TestContainerWiresDownloaderCorrectly:
         from bootstrap.container import load_container
         from infra.files.downloader import MediaDownloader
 
+        from bootstrap import keys as K
         container = load_container(stub_config)
-        dl = container.get("files__media_downloader")
+        dl = container.get(K.FILES_MEDIA_DOWNLOADER)
 
         assert isinstance(dl, MediaDownloader)
         assert dl.timeout <= 3600, (

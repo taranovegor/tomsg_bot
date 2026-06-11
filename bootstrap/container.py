@@ -10,34 +10,24 @@ from infra.files.storage import LocalStorage
 from infra.files.validator import RemoteFileValidator
 from infra.media.processor import VideoProcessor
 from platforms.telegram.renderer import MessageRenderer
-from parsers import (
-    cmtt,
-    habr,
-    instagram,
-    reddit,
-    redspecial,
-    tiktok,
-    trashbox,
-    truthsocial,
-    tumblr,
-    twitter,
-    vk,
-    youtube,
-)
 
 from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
 
-from bootstrap import meta
-from core.ports import Parser
+from bootstrap import keys as K
+from shared import info
+from core.config import Config
+from core.pipeline import Pipeline
+from core.ports import DelegatingParser, Parser
 from infra.analytics.analytics import Analytics
 from infra.analytics.ga import GoogleAnalytics
-from core.config import Config
-from core.ports import DelegatingParser
-from core.pipeline import Pipeline
 from platforms.telegram import DOWNLOAD_FILE_SIZE_LIMIT, INLINE_FILE_SIZE_LIMIT
-from platforms.telegram.message import MessageHandler as TelegaMessageHandler
-from platforms.telegram.message import TelegramDelivery as TelegaDelivery
-from platforms.telegram.inline_query import InlineQueryHandler as TelegaInlineQueryHandler
+from platforms.telegram.message import (
+    MessageHandler as TelegaMessageHandler,
+    TelegramDelivery as TelegaDelivery,
+)
+from platforms.telegram.inline_query import (
+    InlineQueryHandler as TelegaInlineQueryHandler,
+)
 
 
 class Container:
@@ -62,7 +52,9 @@ class Container:
                 logging.info("Service %s initialized successfully", name)
             except Exception as e:
                 logging.critical("Failed to initialize service %s", name, exc_info=True)
-                raise RuntimeError(f"Service initialization error for {name}") from e
+                raise RuntimeError(
+                    f"Service initialization error for {name}"
+                ) from e
         return service.instance
 
     def register(self, name, initializer):
@@ -84,14 +76,10 @@ class Service:
 
     def initialize(self, container: Container):
         """Initializes the service and sets its instance."""
-        try:
-            logging.debug("Initializing service instance")
-            self.instance = self.initializer(container)
-            self.initialized = True
-            logging.info("Service initialized successfully")
-        except Exception as e:
-            logging.error("Error initializing service", exc_info=True)
-            raise RuntimeError(f"Service initialization failed: {e}") from e
+        logging.debug("Initializing service instance")
+        self.instance = self.initializer(container)
+        self.initialized = True
+        logging.info("Service initialized successfully")
 
 
 def _tempdir(_: Container) -> tempfile.TemporaryDirectory:
@@ -101,13 +89,13 @@ def _tempdir(_: Container) -> tempfile.TemporaryDirectory:
     return tempdir
 
 
-def __analytics_ga(container: Container) -> Analytics:
+def _analytics(container: Container) -> Analytics:
     """Initializes and returns a GoogleAnalytics instance."""
     config = container.config.google_analytics
     return GoogleAnalytics(
         config.measurement_id,
         config.secret,
-        f"{os.name}:{meta.name()}:{meta.version()}",
+        f"{os.name}:{info.name()}:{info.version()}",
         lambda x: hashlib.sha256(
             (str(x) + config.user_identifier_salt).encode()
         ).hexdigest(),
@@ -117,56 +105,58 @@ def __analytics_ga(container: Container) -> Analytics:
 def _files_media_downloader(_: Container) -> MediaDownloader:
     """MediaDownloader with per-platform streaming cap and timeout."""
     return MediaDownloader(
-        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
+        f"{os.name}:{info.name()}:{info.version()} (like TwitterBot)",
         timeout=300,
         max_bytes=DOWNLOAD_FILE_SIZE_LIMIT,
     )
 
 
-def _files_file_resolver(container: Container) -> FileResolver:
-    """FileResolver with per-platform size limit."""
-    validator = RemoteFileValidator(
-        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
+def _files_download_validator(_: Container) -> RemoteFileValidator:
+    """RemoteFileValidator for full-size downloads (2 GB limit)."""
+    return RemoteFileValidator(
+        f"{os.name}:{info.name()}:{info.version()} (like TwitterBot)",
         DOWNLOAD_FILE_SIZE_LIMIT,
     )
-    return FileResolver(
-        validator,
-        container.get("files__media_downloader"),
-        container.get("files__local_storage_files"),
+
+
+def _files_inline_validator(_: Container) -> RemoteFileValidator:
+    """RemoteFileValidator for inline-query downloads (20 MB limit)."""
+    return RemoteFileValidator(
+        f"{os.name}:{info.name()}:{info.version()} (like TwitterBot)",
+        INLINE_FILE_SIZE_LIMIT,
     )
 
 
-def _files_local_storage_files(container: Container) -> LocalStorage:
+def _files_file_resolver(container: Container) -> FileResolver:
+    """FileResolver with per-platform size limit."""
+    return FileResolver(
+        container.get(K.FILES_DOWNLOAD_VALIDATOR),
+        container.get(K.FILES_MEDIA_DOWNLOADER),
+        container.get(K.FILES_LOCAL_STORAGE),
+    )
+
+
+def _files_local_storage(container: Container) -> LocalStorage:
     """Storage for downloaded files."""
-    return LocalStorage(Path(container.get("tempdir").name))
+    return LocalStorage(Path(container.get(K.TEMPDIR).name))
 
 
 def _media_video_processor(container: Container) -> VideoProcessor:
     """Video processor with its own storage."""
-    return VideoProcessor(container.get("files__local_storage_files"))
+    return VideoProcessor(container.get(K.FILES_LOCAL_STORAGE))
 
 
-def __parser_delegating_parser(container: Container) -> Parser:
-    """Initializes and returns a DelegatingParser instance."""
+def _parser_delegating(container: Container) -> Parser:
+    """Initializes and returns a DelegatingParser with all registered parsers."""
+    import parsers
+
+    factories = parsers.registry.get_factories()
     return DelegatingParser(
-        [
-            container.get("parser__cmtt"),
-            container.get("parser__habr"),
-            container.get("parser__instagram"),
-            container.get("parser__reddit"),
-            container.get("parser_redspecial"),
-            container.get("parser__tiktok"),
-            container.get("parser__trashbox"),
-            container.get("parser__truthsocial"),
-            container.get("parser__tumblr"),
-            container.get("parser__twitter"),
-            container.get("parser__vk"),
-            container.get("parser__youtube"),
-        ]
+        [container.get(K.PARSER_TEMPLATE.format(name)) for name in sorted(factories)]
     )
 
 
-def __app(container: Container) -> None:
+def _app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
     logging.info("Initializing Telegram bot application")
     builder = Application.builder()
@@ -179,12 +169,14 @@ def __app(container: Container) -> None:
     application = builder.build()
 
     application.add_handler(
-        InlineQueryHandler(container.get("telega__inline_query_handler").handle)
+        InlineQueryHandler(
+            container.get(K.TELEGA_INLINE_QUERY_HANDLER).handle
+        )
     )
     application.add_handler(
         MessageHandler(
             filters.TEXT & filters.ChatType.PRIVATE,
-            container.get("telega__message_handler").handle,
+            container.get(K.TELEGA_MESSAGE_HANDLER).handle,
         )
     )
 
@@ -193,154 +185,38 @@ def __app(container: Container) -> None:
     return application.run_polling()
 
 
-def __parser_cmtt(container: Container) -> Parser:
-    """Initializes and returns a cmtt.Parser instance."""
-    return cmtt.Parser(
-        f"{os.name}:{meta.name()}:{meta.version()}",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_habr(container: Container) -> Parser:
-    """Initializes and returns a habr.Parser instance."""
-    return habr.Parser(
-        f"{os.name}:{meta.name()}:{meta.version()}",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_instagram(container: Container) -> Parser:
-    """Initializes and returns an instagram.Parser instance."""
-    config = container.config.instagram
-
-    cipher = instagram.Cipher(config.encryption_key)
-
-    return instagram.Parser(
-        config.parser_url,
-        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
-        cipher,
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_reddit(container: Container) -> Parser:
-    """Initializes and returns a reddit.Parser instance."""
-    config = container.config.reddit
-    return reddit.Parser(
-        config.client_id,
-        config.client_secret,
-        f"{os.name}:{meta.name()}:{meta.version()} (by /u/{config.app_owner_username})",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_redspecial(container: Container) -> Parser:
-    """Initializes and returns a redspecial.Parser instance."""
-    return redspecial.Parser(
-        f"{os.name}:{meta.name()}:{meta.version()}",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_tiktok(container: Container) -> Parser:
-    """Initializes and returns a tiktok.Parser instance."""
-    config = container.config.tiktok
-    return tiktok.Parser(
-        config.video_resource_url,
-        config.thumbnail_resource_url,
-        f"{os.name}:{meta.name()}:{meta.version()}",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_trashbox(container: Container) -> Parser:
-    """Initializes and returns a trashbox.Parser instance."""
-    return trashbox.Parser(
-        f"{os.name}:{meta.name()}:{meta.version()}",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_truthsocial(container: Container) -> Parser:
-    """Initializes and returns a truthsocial.Parser instance."""
-    return truthsocial.Parser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 tomsg_bot",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_tumblr(container: Container) -> Parser:
-    """Initializes and returns a tumblr.Parser instance."""
-    config = container.config.tumblr
-    return tumblr.Parser(
-        config.api_key,
-        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_twitter(container: Container) -> Parser:
-    """Initializes and returns a twitter.Parser instance."""
-    return twitter.Parser(
-        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def __parser_vk(container: Container) -> Parser:
-    """Initializes and returns a vk.Parser instance."""
-    config = container.config.vk
-    return vk.Parser(
-        config.thumbnail_url,
-        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def _parser_youtube(container: Container) -> Parser:
-    """Initializes and returns a youtube.Parser instance."""
-    config = container.config.youtube
-    return youtube.Parser(
-        config.api_key,
-        f"{os.name}:{meta.name()}:{meta.version()} TelegramBot (like TwitterBot)",
-        timeout=container.config.parser_http_timeout,
-    )
-
-
-def _telega_inline_query_handler(container: Container) -> TelegaInlineQueryHandler:
-    """TelegaInlineQueryHandler constructed from container services; validator created inline."""
-    validator = RemoteFileValidator(
-        f"{os.name}:{meta.name()}:{meta.version()} (like TwitterBot)",
-        INLINE_FILE_SIZE_LIMIT,
-    )
+def _telega_inline_query_handler(
+    container: Container,
+) -> TelegaInlineQueryHandler:
+    """TelegaInlineQueryHandler constructed from container services."""
     return TelegaInlineQueryHandler(
-        container.get("parser_delegating_parser"),
-        container.get("telega__message_renderer"),
-        validator,
-        container.get("analytics_ga"),
+        container.get(K.PARSER_DELEGATING),
+        container.get(K.TELEGA_MESSAGE_RENDERER),
+        container.get(K.FILES_INLINE_VALIDATOR),
+        container.get(K.ANALYTICS),
     )
 
 
 def _pipeline(container: Container) -> Pipeline:
     """Neutral content pipeline shared by all platforms."""
     return Pipeline(
-        container.get("parser_delegating_parser"),
-        container.get("files__file_resolver"),
-        container.get("media__video_processor"),
+        container.get(K.PARSER_DELEGATING),
+        container.get(K.FILES_FILE_RESOLVER),
+        container.get(K.MEDIA_VIDEO_PROCESSOR),
     )
 
 
 def _telega_delivery(container: Container) -> TelegaDelivery:
     """Telegram-specific delivery using shared renderer."""
-    return TelegaDelivery(container.get("telega__message_renderer"))
+    return TelegaDelivery(container.get(K.TELEGA_MESSAGE_RENDERER))
 
 
 def _telega_message_handler(container: Container) -> TelegaMessageHandler:
     """TelegaMessageHandler constructed from container services."""
     return TelegaMessageHandler(
-        container.get("pipeline"),
-        container.get("telega__delivery"),
-        container.get("analytics_ga"),
+        container.get(K.PIPELINE),
+        container.get(K.TELEGA_DELIVERY),
+        container.get(K.ANALYTICS),
     )
 
 
@@ -354,38 +230,28 @@ def load_container(config):
     logging.info("Loading container with services")
     container = Container(config)
 
-    container.register("tempdir", _tempdir)
+    container.register(K.TEMPDIR, _tempdir)
+    container.register(K.ANALYTICS, _analytics)
+    container.register(K.FILES_MEDIA_DOWNLOADER, _files_media_downloader)
+    container.register(K.FILES_DOWNLOAD_VALIDATOR, _files_download_validator)
+    container.register(K.FILES_INLINE_VALIDATOR, _files_inline_validator)
+    container.register(K.FILES_FILE_RESOLVER, _files_file_resolver)
+    container.register(K.FILES_LOCAL_STORAGE, _files_local_storage)
+    container.register(K.MEDIA_VIDEO_PROCESSOR, _media_video_processor)
+    container.register(K.PIPELINE, _pipeline)
+    container.register(K.PARSER_DELEGATING, _parser_delegating)
 
-    container.register("analytics_ga", __analytics_ga)
+    import parsers
 
-    container.register("files__media_downloader", _files_media_downloader)
-    container.register("files__file_resolver", _files_file_resolver)
-    container.register("files__local_storage_files", _files_local_storage_files)
+    factories = parsers.registry.get_factories()
+    for name in sorted(factories):
+        container.register(K.PARSER_TEMPLATE.format(name), factories[name])
 
-    container.register("media__video_processor", _media_video_processor)
-
-    container.register("pipeline", _pipeline)
-
-    container.register("parser_delegating_parser", __parser_delegating_parser)
-    container.register("parser__cmtt", __parser_cmtt)
-    container.register("parser__habr", __parser_habr)
-    container.register("parser__instagram", __parser_instagram)
-    container.register("parser__reddit", __parser_reddit)
-    container.register("parser_redspecial", __parser_redspecial)
-    container.register("parser__tiktok", __parser_tiktok)
-    container.register("parser__trashbox", __parser_trashbox)
-    container.register("parser__truthsocial", __parser_truthsocial)
-    container.register("parser__tumblr", __parser_tumblr)
-    container.register("parser__twitter", __parser_twitter)
-    container.register("parser__vk", __parser_vk)
-    container.register("parser__youtube", _parser_youtube)
-
-    container.register("telega__inline_query_handler", _telega_inline_query_handler)
-    container.register("telega__delivery", _telega_delivery)
-    container.register("telega__message_handler", _telega_message_handler)
-    container.register("telega__message_renderer", _telega_message_renderer)
-
-    container.register("app", __app)
+    container.register(K.TELEGA_INLINE_QUERY_HANDLER, _telega_inline_query_handler)
+    container.register(K.TELEGA_DELIVERY, _telega_delivery)
+    container.register(K.TELEGA_MESSAGE_HANDLER, _telega_message_handler)
+    container.register(K.TELEGA_MESSAGE_RENDERER, _telega_message_renderer)
+    container.register(K.APP, _app)
 
     logging.info("Container loaded successfully")
 

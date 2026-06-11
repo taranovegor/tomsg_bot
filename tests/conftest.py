@@ -14,6 +14,7 @@ def load_fixture(name: str) -> dict:
 def stub_config():
     """Minimal config that satisfies all parser and service constructors."""
     return SimpleNamespace(
+        version="test",
         parser_http_timeout=30,
         telegram=SimpleNamespace(bot_token="test-token", base_url=None),
         instagram=SimpleNamespace(

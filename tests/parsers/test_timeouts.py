@@ -105,23 +105,14 @@ class TestCmttTimeout:
         assert Parser("agent").timeout == 30
 
 
+def _get_all_parser_keys():
+    import parsers
+    from bootstrap import keys as K
+    return sorted(K.PARSER_TEMPLATE.format(name) for name in parsers.registry.get_factories())
+
+
 class TestContainerPassesTimeout:
-    # All 12 parser service keys that must receive timeout from config.
-    # If a new parser is added without wiring timeout, this list catches it.
-    ALL_PARSER_KEYS = [
-        "parser__cmtt",
-        "parser__habr",
-        "parser__instagram",
-        "parser__reddit",
-        "parser_redspecial",
-        "parser__tiktok",
-        "parser__trashbox",
-        "parser__truthsocial",
-        "parser__tumblr",
-        "parser__twitter",
-        "parser__vk",
-        "parser__youtube",
-    ]
+    ALL_PARSER_KEYS = _get_all_parser_keys()
 
     @pytest.mark.parametrize("key", ALL_PARSER_KEYS)
     def test_each_parser_receives_timeout_from_config(self, stub_config, key):
