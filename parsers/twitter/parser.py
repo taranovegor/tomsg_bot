@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -65,7 +65,7 @@ class Parser(BaseParser):
         created_at = datetime.strptime(
             tweet["date"],
             "%a %b %d %H:%M:%S %z %Y",
-        )
+        ).astimezone(timezone.utc)
 
         backlink = Link(
             f"https://x.com/{tweet["user_screen_name"]}/status/{status_id}"

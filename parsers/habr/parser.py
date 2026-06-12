@@ -1,7 +1,7 @@
 import re
 import requests
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core import (
     Parser as BaseParser,
@@ -55,7 +55,7 @@ class Parser(BaseParser):
 
         return Content(
             author=Link(url=f"https://habr.com/ru/users/{author}/", text=author),
-            created_at=datetime.fromisoformat(comment["timePublished"]),
+            created_at=datetime.fromisoformat(comment["timePublished"]).astimezone(timezone.utc),
             text=HTMLProcessor().process(comment["message"]),
             backlink=Link(
                 f"https://habr.com/ru/articles/{article_id}/#comment_{comment_id}",

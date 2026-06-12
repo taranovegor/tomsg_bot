@@ -270,7 +270,7 @@ class TestMessageHandlerHandle:
         exception_events = [e for e in log_call if e.name == "exception"]
         assert len(exception_events) == 1
         assert "hostname" in exception_events[0]
-        assert "unsupported" in str(exception_events[0].get("hostname"))
+        assert "unsupported" in str(exception_events[0]["hostname"])
 
     @pytest.mark.asyncio
     async def test_success_schedules_delivery_and_logs_once(self):
@@ -311,4 +311,4 @@ class TestMessageHandlerHandle:
         args = events_instance.add.call_args_list
         page_view_calls = [a for a in args if a[0][0].name == "page_view"]
         assert len(page_view_calls) == 1
-        assert page_view_calls[0][0][0].get("page_location") == "https://example.com/post"
+        assert page_view_calls[0][0][0]["page_location"] == "https://example.com/post"

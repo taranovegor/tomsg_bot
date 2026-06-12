@@ -1,11 +1,10 @@
-import pytz
 import requests
 import re
 import json
 
 from urllib.parse import urlparse
 from html import unescape
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core import (
     Parser as BaseParser,
@@ -60,7 +59,7 @@ class Parser(BaseParser):
 
         return Content(
             author=Link(url=f'https://redspecial.ru/users/{comment["login"]}/', text=comment['login']),
-            created_at=datetime.fromtimestamp(int(comment['posted'])).astimezone(pytz.timezone("Europe/Moscow")),
+            created_at=datetime.fromtimestamp(int(comment['posted']), tz=timezone.utc),
             text=format_content(comment['content']),
             metrics=[f'👍 {comment["votes1"]}', f'👎 {comment["votes0"].lstrip("-")}'],
             backlink=Link(url=string, text=link_data['title']),

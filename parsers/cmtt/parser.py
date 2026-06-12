@@ -2,7 +2,7 @@ import requests
 import re
 import json
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core import (
     Parser as BaseParser,
@@ -56,7 +56,7 @@ class Parser(BaseParser):
 
         return Content(
             author=Link(url=f'https://{domain}/u/{author_id}/', text=author_name),
-            created_at=datetime.fromtimestamp(comment['date']),
+            created_at=datetime.fromtimestamp(comment['date'], tz=timezone.utc),
             text=comment['text'],
             metrics=reactions,
             backlink=Link(url=f'https://{domain}/{article_id}?comment={comment_id}', text=article_title),
