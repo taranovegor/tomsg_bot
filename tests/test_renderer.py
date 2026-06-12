@@ -58,11 +58,19 @@ def test_render_text_escapes_less_than(renderer):
     assert "a &lt; b" in renderer.render(content)
 
 
-def test_render_text_preserves_html_tags(renderer):
-    """escape_non_tags passes through tag-like substrings as-is (current behaviour)."""
+def test_render_text_preserves_whitelisted_html_tags(renderer):
+    """Telegram-whitelist tags like <b> are preserved, not escaped."""
     content = Content(backlink=Link("https://example.com"), text="Hello <b>world</b>")
     result = renderer.render(content)
     assert "<b>world</b>" in result
+
+
+def test_render_text_escapes_non_whitelisted_tags(renderer):
+    """Tags outside the Telegram whitelist are escaped."""
+    content = Content(backlink=Link("https://example.com"), text="<script>alert(1)</script>")
+    result = renderer.render(content)
+    assert "&lt;script&gt;" in result
+    assert "<script>" not in result
 
 
 def test_render_text_escapes_non_tag_angle_bracket(renderer):
@@ -70,6 +78,51 @@ def test_render_text_escapes_non_tag_angle_bracket(renderer):
     content = Content(backlink=Link("https://example.com"), text="score: <3")
     result = renderer.render(content)
     assert "&lt;3" in result
+
+
+def test_render_text_normalizes_tag_synonyms(renderer):
+    """strong/em/ins/del normalize to b/i/u/s."""
+    content = Content(backlink=Link("https://example.com"), text="<strong>bold</strong> <em>italic</em>")
+    result = renderer.render(content)
+    assert "<b>bold</b>" in result
+    assert "<i>italic</i>" in result
+    assert "<strong>" not in result
+
+
+def test_render_text_strips_non_whitelisted_attributes(renderer):
+    """Attributes on whitelisted tags are stripped unless explicitly allowed."""
+    content = Content(backlink=Link("https://example.com"), text='<b class="x" onclick="alert(1)">text</b>')
+    result = renderer.render(content)
+    assert "<b>text</b>" in result or '<b class="x">text</b>' not in result
+    assert "onclick" not in result
+
+
+def test_render_text_href_kept_on_anchor(renderer):
+    """href is allowed on <a> tags."""
+    content = Content(backlink=Link("https://example.com"), text='<a href="https://safe.com">link</a>')
+    result = renderer.render(content)
+    assert '<a href="https://safe.com">' in result
+
+
+def test_render_text_href_javascript_stripped(renderer):
+    """javascript: href is removed."""
+    content = Content(backlink=Link("https://example.com"), text='<a href="javascript:alert(1)">xss</a>')
+    result = renderer.render(content)
+    assert "javascript" not in result
+
+
+def test_render_text_spoiler_not_allowed(renderer):
+    """<spoiler> is not a Telegram tag; only <tg-spoiler> is valid."""
+    content = Content(backlink=Link("https://example.com"), text="<spoiler>secret</spoiler>")
+    result = renderer.render(content)
+    assert "&lt;spoiler&gt;" in result
+
+
+def test_render_text_tg_spoiler_preserved(renderer):
+    """<tg-spoiler> is a valid Telegram tag and must be preserved."""
+    content = Content(backlink=Link("https://example.com"), text="<tg-spoiler>hidden</tg-spoiler>")
+    result = renderer.render(content)
+    assert "<tg-spoiler>hidden</tg-spoiler>" in result
 
 
 # Author

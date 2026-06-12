@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -65,7 +65,7 @@ class Parser(BaseParser):
             f"❤️ {self.format_counter(status['favourites_count'])}",
         ]
 
-        created_at = datetime.fromisoformat(status["created_at"].replace("Z", "+00:00"))
+        created_at = datetime.fromisoformat(status["created_at"].replace("Z", "+00:00")).astimezone(timezone.utc)
 
         backlink = Link(status["url"])
 

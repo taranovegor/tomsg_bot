@@ -4,13 +4,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Self
 
 
-class Event(Dict[str, Any]):
+class Event:
     """Represents an individual event with a name and properties."""
 
     def __init__(self, name: str):
         """Initializes the event with a name."""
-        super().__init__()
         self.name = name
+        self._data: dict[str, Any] = {}
 
     def get_name(self) -> str:
         """Returns the name of the event."""
@@ -18,12 +18,26 @@ class Event(Dict[str, Any]):
 
     def add(self, prop: str, value: Any) -> Self:
         """Adds a property to the event."""
-        self[prop] = value
+        self._data[prop] = value
         return self
 
-    def get(self, prop: str) -> Any:
-        """Returns the value of a specific property from the event."""
-        return self[prop]
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._data[key] = value
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __repr__(self):
+        return repr(self._data)
+
+    def items(self):
+        return self._data.items()
 
 
 class Events(List[Event]):

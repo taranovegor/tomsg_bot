@@ -22,7 +22,7 @@ class Entity(ABC):
 
     @staticmethod
     @abstractmethod
-    def type() -> str:
+    def type() -> MediaType:
         """Returns the type of the entity."""
         pass
 
@@ -44,7 +44,7 @@ class Photo(Entity):
     caption: str | None = None
 
     @staticmethod
-    def type() -> str:
+    def type() -> MediaType:
         """Returns the type of the entity as 'photo'."""
         return MediaType.PHOTO
 
@@ -58,7 +58,7 @@ class Video(Entity):
     thumbnail_url: str
 
     @staticmethod
-    def type() -> str:
+    def type() -> MediaType:
         """Returns the type of the entity as 'video'."""
         return MediaType.VIDEO
 
@@ -72,7 +72,7 @@ class GIF(Entity):
     thumbnail_url: str
 
     @staticmethod
-    def type() -> str:
+    def type() -> MediaType:
         """Returns the type of the entity as 'gif'."""
         return MediaType.GIF
 
@@ -82,14 +82,14 @@ class Content(Entity):
     """Represents content with metadata, text, author, metrics, creation date, and media."""
 
     backlink: Link
-    text: str = None
-    author: Link = None
-    metrics: list[str] = None
-    created_at: datetime = None
-    media: list[Photo | Video | GIF] = None
+    text: Optional[str] = None
+    author: Optional[Link] = None
+    metrics: Optional[list[str]] = None
+    created_at: Optional[datetime] = None
+    media: Optional[list[Photo | Video | GIF]] = None
 
     @staticmethod
-    def type() -> str:
+    def type() -> MediaType:
         """Returns the type of the entity as 'content'."""
         return MediaType.CONTENT
 

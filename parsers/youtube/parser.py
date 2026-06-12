@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -68,5 +68,5 @@ class Parser(BaseParser):
             text=item["textDisplay"],
             author=author,
             metrics=metrics,
-            created_at=datetime.fromisoformat(item["publishedAt"]),
+            created_at=datetime.fromisoformat(item["publishedAt"]).astimezone(timezone.utc),
         )

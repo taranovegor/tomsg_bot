@@ -10,14 +10,14 @@ from infra.media.entity import VideoMeta
 
 
 class VideoProcessor:
-    """Utilities to probe video info and create a JPEG thumbnail."""
+    """Utilities to probe video info (dimensions, duration)."""
 
     def __init__(self, storage: LocalStorage):
         self.storage = storage
 
     async def process_video(self, video_path: Path) -> VideoMeta:
         """
-        Probe dimensions and duration, generate and store a JPEG thumbnail, return VideoMeta.
+        Probe dimensions and duration of a video file, return VideoMeta.
         """
         dim_task = asyncio.create_task(self.probe_dimensions(video_path))
         dur_task = asyncio.create_task(self.probe_duration(video_path))

@@ -10,7 +10,7 @@ Real fixtures fetched 2026-06-25 from api.dtf.ru/v2.5/comments:
 """
 import json
 import pathlib
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 import responses as responses_lib
@@ -100,7 +100,7 @@ def test_parse_created_at_value(parser):
     responses_lib.add(responses_lib.GET, DTF_API, json=FIXTURE, status=200)
     content = parser.parse(DTF_URL)
     raw_ts = FIXTURE["result"]["items"][0]["date"]
-    assert content.created_at == datetime.fromtimestamp(raw_ts)
+    assert content.created_at == datetime.fromtimestamp(raw_ts, tz=timezone.utc)
 
 
 @responses_lib.activate

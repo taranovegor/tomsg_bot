@@ -3,7 +3,7 @@ from typing import Optional
 
 from core import Content, Link
 from core.ports import Renderer
-from shared.htmls import escape_non_tags
+from shared.htmls import sanitize_html
 
 
 class MessageRenderer(Renderer):
@@ -16,8 +16,8 @@ class MessageRenderer(Renderer):
         Produce a compact textual summary of `content`.
 
         Includes author (as an HTML link if available), creation timestamp,
-        escaped text (preserving HTML tags), and metrics. Returns the resulting
-        text with surrounding whitespace trimmed.
+        sanitized text (only Telegram-whitelist HTML tags preserved), and
+        metrics. Returns the resulting text with surrounding whitespace trimmed.
         """
         parts = []
 
@@ -33,7 +33,7 @@ class MessageRenderer(Renderer):
             parts.append("")
 
         if content.text:
-            parts.append(escape_non_tags(content.text))
+            parts.append(sanitize_html(content.text))
             parts.append("")
         elif content.author or content.created_at:
             parts.append("")

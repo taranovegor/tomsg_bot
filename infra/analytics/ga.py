@@ -1,4 +1,6 @@
 import logging
+from typing import Callable
+
 import aiohttp
 
 from infra.analytics.analytics import Analytics, Events
@@ -14,7 +16,7 @@ class GoogleAnalytics(Analytics):
         measurement_id: str,
         secret: str,
         user_agent: str,
-        mask_identifier: lambda: str,
+        mask_identifier: Callable[[int], str],
     ) -> None:
         """Initializes the GA instance."""
         self.measurement_id = measurement_id
@@ -32,7 +34,7 @@ class GoogleAnalytics(Analytics):
                 map(
                     lambda ev: {
                         "name": ev.get_name(),
-                        "params": ev,
+                        "params": dict(ev.items()),
                     },
                     events,
                 )
@@ -40,20 +42,19 @@ class GoogleAnalytics(Analytics):
         }
 
         logging.debug(
-            "Sending data to GA: measurement_id=%s, payload=%s",
+            "Sending data to GA: measurement_id=%s",
             self.measurement_id,
-            payload,
         )
 
-        url = (
-            f"https://www.google-analytics.com/mp/collect"
-            f"?measurement_id={self.measurement_id}"
-            f"&api_secret={self.secret}"
-        )
+        params = {
+            "measurement_id": self.measurement_id,
+            "api_secret": self.secret,
+        }
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(
-                    url,
+                    "https://www.google-analytics.com/mp/collect",
+                    params=params,
                     json=payload,
                     headers={
                         "Content-Type": "application/json",
