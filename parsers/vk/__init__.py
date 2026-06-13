@@ -1,5 +1,6 @@
+from parsers.registry import build_user_agent, register
+
 from .parser import Parser as _VkParser
-from parsers.registry import register, build_user_agent
 
 
 @register("vk")

@@ -1,5 +1,4 @@
 from html.parser import HTMLParser
-from typing import Dict, List, Tuple
 
 
 class MetaParser(HTMLParser):
@@ -8,9 +7,9 @@ class MetaParser(HTMLParser):
     def __init__(self):
         """Initializes the parser and sets up the storage for meta tags."""
         super().__init__()
-        self._meta_tags: Dict[str, str] = {}
+        self._meta_tags: dict[str, str] = {}
 
-    def handle_starttag(self, tag: str, attrs: List[Tuple[str, str]]):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]):
         """Handles the start tag of HTML elements and extracts meta tag content."""
         if tag == "meta":
             attr_dict = dict(attrs)
@@ -18,7 +17,7 @@ class MetaParser(HTMLParser):
             if key:
                 self._meta_tags[key] = attr_dict.get("content", "")
 
-    def get_meta_tags(self) -> Dict[str, str]:
+    def get_meta_tags(self) -> dict[str, str]:
         """Returns a copy of the extracted meta tags."""
         return self._meta_tags.copy()
 
@@ -31,6 +30,6 @@ class HTMLMetaExtractor:
         self._parser = MetaParser()
         self._parser.feed(html)
 
-    def extract(self) -> Dict[str, str]:
+    def extract(self) -> dict[str, str]:
         """Extracts and returns the meta tags from the HTML content."""
         return self._parser.get_meta_tags()

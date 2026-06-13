@@ -1,23 +1,24 @@
-from urllib.parse import urlparse
-import logging
 import asyncio
+import logging
+from urllib.parse import urlparse
+
 from telegram import (
-    Update,
+    InlineQuery,
     InlineQueryResultArticle,
+    InlineQueryResultGif,
+    InlineQueryResultPhoto,
+    InlineQueryResultVideo,
     InputTextMessageContent,
     LinkPreviewOptions,
-    InlineQueryResultVideo,
-    InlineQueryResultPhoto,
-    InlineQueryResultGif,
-    InlineQuery,
+    Update,
 )
 from telegram.constants import ParseMode
 
-from core import Parser, InvalidUrlError, ParserNotFoundError
-from infra.analytics.analytics import Analytics, Events, Event
-from infra.files.exception import FileTooLarge
-from infra.files.validator import RemoteFileValidator
+from core import InvalidUrlError, Parser, ParserNotFoundError
 from core.domain.entity import Content, MediaType
+from infra.analytics.analytics import Analytics, Event, Events
+from infra.files.exception import FileTooLargeError
+from infra.files.validator import RemoteFileValidator
 from platforms.telegram.renderer import MessageRenderer
 from shared.htmls import strip_tags
 from shared.uid import generate_uuid
@@ -79,11 +80,7 @@ class InlineQueryHandler:
         if not is_valid_url(query):
             logging.warning("Invalid URL received: %s", query)
             e = InvalidUrlError()
-            events.add(
-                Event("exception")
-                .add("description", str(e))
-                .add("type", type(e).__name__)
-            )
+            events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
             await self._send_error(
                 inline_query,
                 "invalid_url",
@@ -116,11 +113,7 @@ class InlineQueryHandler:
             )
         except Exception as e:
             logging.error("Exception while processing query: %s", query, exc_info=True)
-            events.add(
-                Event("exception")
-                .add("description", str(e))
-                .add("type", type(e).__name__)
-            )
+            events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
             await self._send_error(
                 inline_query,
                 "exception",
@@ -148,9 +141,7 @@ class InlineQueryHandler:
         if content.media and len(content.media) > 0:
             result = None
 
-            validate_tasks = [
-                asyncio.create_task(self._validate_media(m)) for m in content.media
-            ]
+            validate_tasks = [asyncio.create_task(self._validate_media(m)) for m in content.media]
             allowed_flags = await asyncio.gather(*validate_tasks)
 
             allowed_media = [m for m, ok in zip(content.media, allowed_flags) if ok]
@@ -228,8 +219,11 @@ class InlineQueryHandler:
                     title=title,
                     description=description,
                     input_message_content=InputTextMessageContent(
-                        message_text=f"{inline_query.query}\n\n"
-                        f"❗️Это сообщение введено пользователем, бот не отвечает за его содержание.",
+                        message_text=(
+                            f"{inline_query.query}\n\n"
+                            "❗️Это сообщение введено пользователем, "
+                            "бот не отвечает за его содержание."
+                        ),
                     ),
                 ),
             ],
@@ -246,7 +240,7 @@ class InlineQueryHandler:
         try:
             await self.file_validator.validate_size(media.resource_url)
             return True
-        except FileTooLarge:
+        except FileTooLargeError:
             logging.info("Media skipped due to size limit: %s", media.resource_url)
             return False
         except Exception:

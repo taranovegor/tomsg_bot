@@ -8,14 +8,15 @@ reply_animation as individual messages.
 asyncio.create_task calls must have a done-callback so
 exceptions inside _send_content are not silently swallowed.
 """
+
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.domain.entity import Content, GIF, Photo, Link, FileInfo, PipelineResult
+from core.domain.entity import GIF, Content, FileInfo, Link, Photo, PipelineResult
 from core.exceptions import InvalidUrlError, ParserNotFoundError
-from platforms.telegram.message import TelegramDelivery, MessageHandler
+from platforms.telegram.message import MessageHandler, TelegramDelivery
 
 
 def _make_delivery():
@@ -38,17 +39,25 @@ class TestGifSentSeparately:
         delivery = _make_delivery()
         content = Content(
             backlink=Link(url="https://x.com/u/status/1"),
-            media=[GIF(resource_url="http://cdn.test/anim.gif",
-                       mime_type="image/gif",
-                       thumbnail_url="http://cdn.test/thumb.jpg")],
+            media=[
+                GIF(
+                    resource_url="http://cdn.test/anim.gif",
+                    mime_type="image/gif",
+                    thumbnail_url="http://cdn.test/thumb.jpg",
+                )
+            ],
         )
         result = PipelineResult(
             content=content,
             resolved_media=[
-                (GIF(resource_url="http://cdn.test/anim.gif",
-                     mime_type="image/gif",
-                     thumbnail_url="http://cdn.test/thumb.jpg"),
-                 FileInfo(path=gif_path, size=16, mime_type="image/gif")),
+                (
+                    GIF(
+                        resource_url="http://cdn.test/anim.gif",
+                        mime_type="image/gif",
+                        thumbnail_url="http://cdn.test/thumb.jpg",
+                    ),
+                    FileInfo(path=gif_path, size=16, mime_type="image/gif"),
+                ),
             ],
         )
 
@@ -74,20 +83,28 @@ class TestGifSentSeparately:
             backlink=Link(url="https://x.com/u/status/1"),
             media=[
                 Photo(resource_url="http://cdn.test/photo.jpg"),
-                GIF(resource_url="http://cdn.test/anim.gif",
+                GIF(
+                    resource_url="http://cdn.test/anim.gif",
                     mime_type="image/gif",
-                    thumbnail_url="http://cdn.test/thumb.jpg"),
+                    thumbnail_url="http://cdn.test/thumb.jpg",
+                ),
             ],
         )
         result = PipelineResult(
             content=content,
             resolved_media=[
-                (Photo(resource_url="http://cdn.test/photo.jpg"),
-                 FileInfo(path=photo_path, size=103, mime_type="image/jpeg")),
-                (GIF(resource_url="http://cdn.test/anim.gif",
-                     mime_type="image/gif",
-                     thumbnail_url="http://cdn.test/thumb.jpg"),
-                 FileInfo(path=gif_path, size=16, mime_type="image/gif")),
+                (
+                    Photo(resource_url="http://cdn.test/photo.jpg"),
+                    FileInfo(path=photo_path, size=103, mime_type="image/jpeg"),
+                ),
+                (
+                    GIF(
+                        resource_url="http://cdn.test/anim.gif",
+                        mime_type="image/gif",
+                        thumbnail_url="http://cdn.test/thumb.jpg",
+                    ),
+                    FileInfo(path=gif_path, size=16, mime_type="image/gif"),
+                ),
             ],
         )
 
@@ -110,17 +127,25 @@ class TestGifSentSeparately:
         content = Content(
             backlink=Link(url="https://x.com/u/status/1"),
             text="hello world",
-            media=[GIF(resource_url="http://cdn.test/anim.gif",
-                       mime_type="image/gif",
-                       thumbnail_url="http://cdn.test/thumb.jpg")],
+            media=[
+                GIF(
+                    resource_url="http://cdn.test/anim.gif",
+                    mime_type="image/gif",
+                    thumbnail_url="http://cdn.test/thumb.jpg",
+                )
+            ],
         )
         result = PipelineResult(
             content=content,
             resolved_media=[
-                (GIF(resource_url="http://cdn.test/anim.gif",
-                     mime_type="image/gif",
-                     thumbnail_url="http://cdn.test/thumb.jpg"),
-                 FileInfo(path=gif_path, size=16, mime_type="image/gif")),
+                (
+                    GIF(
+                        resource_url="http://cdn.test/anim.gif",
+                        mime_type="image/gif",
+                        thumbnail_url="http://cdn.test/thumb.jpg",
+                    ),
+                    FileInfo(path=gif_path, size=16, mime_type="image/gif"),
+                ),
             ],
         )
 
@@ -154,7 +179,7 @@ class TestSendContentTaskCallback:
         with patch("platforms.telegram.message.logging.error") as mock_error:
             try:
                 await asyncio.wait_for(asyncio.shield(task), timeout=1.0)
-            except (RuntimeError, asyncio.TimeoutError):
+            except (TimeoutError, RuntimeError):
                 pass
 
         assert mock_error.called, (
@@ -307,7 +332,6 @@ class TestMessageHandlerHandle:
         with patch("platforms.telegram.message.Events", return_value=events_instance):
             await handler.handle(update, context)
 
-        from infra.analytics.analytics import Events as EventsReal
         args = events_instance.add.call_args_list
         page_view_calls = [a for a in args if a[0][0].name == "page_view"]
         assert len(page_view_calls) == 1

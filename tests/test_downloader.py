@@ -5,6 +5,7 @@ Tests for MediaDownloader.
 - The limit is enforced per-chunk during streaming, not via Content-Length alone.
 - The container wires it correctly.
 """
+
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -53,19 +54,19 @@ class TestMediaDownloaderStreamingLimit:
 
     @pytest.mark.asyncio
     async def test_raises_file_too_large_when_stream_exceeds_max_bytes(self, tmp_path):
-        """FileTooLarge must fire mid-stream even without a Content-Length header."""
+        """FileTooLargeError must fire mid-stream even without a Content-Length header."""
         from infra.files.downloader import MediaDownloader
-        from infra.files.exception import FileTooLarge
+        from infra.files.exception import FileTooLargeError
 
         dl = MediaDownloader("agent", timeout=30, max_bytes=10)
         dest = str(tmp_path / "out.bin")
         session_mock = self._make_session_mock([b"12345678", b"12345678"])  # 16 bytes > 10
 
         with patch("infra.files.downloader.aiohttp.ClientSession", return_value=session_mock):
-            with pytest.raises(FileTooLarge):
+            with pytest.raises(FileTooLargeError):
                 await dl.download("http://example.com/big.bin", dest)
 
-        assert not os.path.exists(dest), "Partial file must be cleaned up after FileTooLarge"
+        assert not os.path.exists(dest), "Partial file must be cleaned up after FileTooLargeError"
 
     @pytest.mark.asyncio
     async def test_succeeds_when_within_max_bytes(self, tmp_path):
@@ -101,12 +102,12 @@ class TestContainerWiresDownloaderCorrectly:
         """
         The downloader must have a sane timeout and a real max_bytes cap.
         """
+        from bootstrap import keys
         from bootstrap.container import load_container
         from infra.files.downloader import MediaDownloader
 
-        from bootstrap import keys as K
         container = load_container(stub_config)
-        dl = container.get(K.FILES_MEDIA_DOWNLOADER)
+        dl = container.get(keys.FILES_MEDIA_DOWNLOADER)
 
         assert isinstance(dl, MediaDownloader)
         assert dl.timeout <= 3600, (

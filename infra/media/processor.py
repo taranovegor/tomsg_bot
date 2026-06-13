@@ -1,9 +1,8 @@
-import logging
-import ffmpeg
-from pathlib import Path
-from typing import Optional
-import uuid
 import asyncio
+import logging
+from pathlib import Path
+
+import ffmpeg
 
 from infra.files.storage import LocalStorage
 from infra.media.entity import VideoMeta
@@ -32,7 +31,7 @@ class VideoProcessor:
         )
 
     @staticmethod
-    async def probe_duration(filepath: Path) -> Optional[int]:
+    async def probe_duration(filepath: Path) -> int | None:
         """
         Return total duration in seconds (int) or None.
 
@@ -62,7 +61,7 @@ class VideoProcessor:
             return None
 
     @staticmethod
-    async def probe_dimensions(filepath: Path) -> tuple[Optional[int], Optional[int]]:
+    async def probe_dimensions(filepath: Path) -> tuple[int | None, int | None]:
         """Return (width, height) from a video stream, or (None, None) if unavailable."""
         try:
             probe = await asyncio.to_thread(ffmpeg.probe, filepath)

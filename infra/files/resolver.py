@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from .entity import FileInfo
-from .validator import RemoteFileValidator
 from .downloader import MediaDownloader
+from .entity import FileInfo
 from .storage import LocalStorage
+from .validator import RemoteFileValidator
 
 
 class FileResolver:

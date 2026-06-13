@@ -5,14 +5,28 @@ Each parser gets one representative URL. These tests freeze the contract:
 "which URL belongs to which parser". They are the first thing to fail if a
 URL pattern or delegation order changes.
 """
+
 import pytest
 
 from core.ports.parser import DelegatingParser
-from parsers import cmtt, habr, instagram, reddit, redspecial, tiktok, trashbox, truthsocial, tumblr, twitter, vk, youtube
+from parsers import (
+    cmtt,
+    habr,
+    instagram,
+    reddit,
+    redspecial,
+    tiktok,
+    trashbox,
+    truthsocial,
+    tumblr,
+    twitter,
+    vk,
+    youtube,
+)
 from parsers.instagram.cipher import Cipher as InstagramCipher
 
-
 # Parser instances with minimal (stub) configuration
+
 
 def _make_twitter():
     return twitter.Parser("test-agent")
@@ -63,20 +77,22 @@ def _make_youtube():
 
 
 def _make_delegating_parser() -> DelegatingParser:
-    return DelegatingParser([
-        _make_cmtt(),
-        _make_habr(),
-        _make_instagram(),
-        _make_reddit(),
-        _make_redspecial(),
-        _make_tiktok(),
-        _make_trashbox(),
-        _make_truthsocial(),
-        _make_tumblr(),
-        _make_twitter(),
-        _make_vk(),
-        _make_youtube(),
-    ])
+    return DelegatingParser(
+        [
+            _make_cmtt(),
+            _make_habr(),
+            _make_instagram(),
+            _make_reddit(),
+            _make_redspecial(),
+            _make_tiktok(),
+            _make_trashbox(),
+            _make_truthsocial(),
+            _make_tumblr(),
+            _make_twitter(),
+            _make_vk(),
+            _make_youtube(),
+        ]
+    )
 
 
 # Parametrized routing table: (url, expected_parser_module_fragment)
@@ -198,6 +214,7 @@ def test_unsupported_urls(url):
 
 # Individual parser supports() tests (redundant with routing table, but
 # explicit — each parser in isolation knows its own URLs)
+
 
 class TestTwitterSupports:
     def setup_method(self):

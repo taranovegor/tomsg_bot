@@ -1,17 +1,19 @@
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
 from core import (
-    Parser as BaseParser,
-    Entity,
     Content,
-    Video,
+    Entity,
     InvalidUrlError,
-    ParseError,
     Link,
+    ParseError,
     Photo,
+    Video,
+)
+from core import (
+    Parser as BaseParser,
 )
 
 
@@ -98,7 +100,7 @@ class Parser(BaseParser):
     def _parse_date(date_str: str) -> datetime:
         """Parses Tumblr date format to datetime with UTC timezone."""
         cleaned = date_str.replace(" GMT", "").strip()
-        return datetime.strptime(cleaned, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        return datetime.strptime(cleaned, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
 
     def _extract_media(self, post: dict) -> list:
         """Extracts media from post photos, videos, or HTML body."""
@@ -108,11 +110,13 @@ class Parser(BaseParser):
             media.extend(self._extract_photos_from_field(post["photos"]))
 
         if post.get("video_url"):
-            media.append(Video(
-                resource_url=post["video_url"],
-                mime_type=self.MIME_MP4,
-                thumbnail_url=post.get("thumbnail_url"),
-            ))
+            media.append(
+                Video(
+                    resource_url=post["video_url"],
+                    mime_type=self.MIME_MP4,
+                    thumbnail_url=post.get("thumbnail_url"),
+                )
+            )
 
         if not media and post.get("body"):
             body = post["body"]
@@ -143,12 +147,14 @@ class Parser(BaseParser):
         poster_url = poster_match.group(1) if poster_match else None
 
         for video_url, mime_type in video_matches:
-            media.append(Video(
-                resource_url=video_url,
-                mime_type=mime_type,
-                thumbnail_url=poster_url,
-                # todo: possible to set height, width
-            ))
+            media.append(
+                Video(
+                    resource_url=video_url,
+                    mime_type=mime_type,
+                    thumbnail_url=poster_url,
+                    # todo: possible to set height, width
+                )
+            )
         return media
 
     def _extract_images_from_html(self, html: str) -> list:
@@ -165,7 +171,7 @@ class Parser(BaseParser):
 
     def _create_media_object(self, resource_url: str, thumbnail_url: str) -> Photo | Video:
         """Creates appropriate media object (Photo, GIF, or Video) based on URL."""
-        if resource_url.lower().endswith('.gif'):
+        if resource_url.lower().endswith(".gif"):
             return Video(
                 resource_url=resource_url,
                 mime_type=self.MIME_GIF,

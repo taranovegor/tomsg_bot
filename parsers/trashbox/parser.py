@@ -1,23 +1,25 @@
-import requests
-import re
 import json
-
-from urllib.parse import urlparse
+import re
+from datetime import UTC, datetime
 from html import unescape
-from datetime import datetime, timezone
+from urllib.parse import urlparse
+
+import requests
 
 from core import (
-    Parser as BaseParser,
-    InvalidUrlError,
-    ParseError,
     Content,
+    InvalidUrlError,
     Link,
+    ParseError,
+)
+from core import (
+    Parser as BaseParser,
 )
 
 
 def find_comment_by_id(comments, comment_id):
     for comment in comments:
-        if comment['comm_id'] == comment_id:
+        if comment["comm_id"] == comment_id:
             return comment
     return None
 
@@ -28,7 +30,7 @@ def replace_img(match):
 
 
 def format_content(content):
-    img_re = re.compile('<img[^>]*src=["\'](.*?)["\'][^>]*>')
+    img_re = re.compile("<img[^>]*src=[\"'](.*?)[\"'][^>]*>")
     content = img_re.sub(replace_img, content)
 
     content = content.replace("<br/>", "\n")
@@ -52,17 +54,19 @@ class Parser(BaseParser):
 
         link_data = self.__parse_topic(string)
 
-        comments = self.fetch_comments(link_data['topic_id'])
-        comment = find_comment_by_id(comments, link_data['comment_id'])
+        comments = self.fetch_comments(link_data["topic_id"])
+        comment = find_comment_by_id(comments, link_data["comment_id"])
         if comment is None:
             raise ParseError
 
         return Content(
-            author=Link(url=f'https://trashbox.ru/users/{comment["login"]}/', text=comment['login']),
-            created_at=datetime.fromtimestamp(int(comment['posted']), tz=timezone.utc),
-            text=format_content(comment['content']),
-            metrics=[f'👍 {comment["votes1"]}', f'👎 {comment["votes0"].lstrip("-")}'],
-            backlink=Link(url=string, text=link_data['title']),
+            author=Link(
+                url=f"https://trashbox.ru/users/{comment['login']}/", text=comment["login"]
+            ),
+            created_at=datetime.fromtimestamp(int(comment["posted"]), tz=UTC),
+            text=format_content(comment["content"]),
+            metrics=[f"👍 {comment['votes1']}", f"👎 {comment['votes0'].lstrip('-')}"],
+            backlink=Link(url=string, text=link_data["title"]),
         )
 
     def __parse_topic(self, url: str):
@@ -79,22 +83,24 @@ class Parser(BaseParser):
 
         comment_id = frag_parts[2]
 
-        body = self.fetch(f'https://trashbox.ru/api_topics/{topic_id}')
+        body = self.fetch(f"https://trashbox.ru/api_topics/{topic_id}")
 
-        topic_match = re.search(r'<trashTopicId>([0-9]*)</trashTopicId>', body)
-        title_match = re.findall(r'<!\[CDATA\[(.*?)]]>', body)
+        topic_match = re.search(r"<trashTopicId>([0-9]*)</trashTopicId>", body)
+        title_match = re.findall(r"<!\[CDATA\[(.*?)]]>", body)
 
         if not topic_match or not title_match:
-            raise ParseError('Failed to parse topic')
+            raise ParseError("Failed to parse topic")
 
         return {
-            'topic_id': topic_match.group(1),
-            'comment_id': comment_id,
-            'title': title_match[1],
+            "topic_id": topic_match.group(1),
+            "comment_id": comment_id,
+            "title": title_match[1],
         }
 
     def fetch_comments(self, topic_id):
-        return json.loads(self.fetch(f'https://trashbox.ru/api_noauth.php?action=comments&topic_id={topic_id}'))['comments']
+        return json.loads(
+            self.fetch(f"https://trashbox.ru/api_noauth.php?action=comments&topic_id={topic_id}")
+        )["comments"]
 
     def fetch(self, url) -> str:
         response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)

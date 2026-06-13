@@ -3,12 +3,14 @@ import re
 import requests
 
 from core import (
-    Parser as BaseParser,
-    Video,
-    InvalidUrlError,
-    ParseError,
-    Link,
     Content,
+    InvalidUrlError,
+    Link,
+    ParseError,
+    Video,
+)
+from core import (
+    Parser as BaseParser,
 )
 from shared.meta import HTMLMetaExtractor
 
@@ -45,11 +47,7 @@ class Parser(BaseParser):
 
         if self.VK_URL_REGEX.match(url):
             matches = self.VK_URL_REGEX.search(url)
-            url = (
-                f"https://vk.com"
-                f"/clip{matches.group('owner_id')}"
-                f"_{matches.group('clip_id')}"
-            )
+            url = f"https://vk.com/clip{matches.group('owner_id')}_{matches.group('clip_id')}"
 
         response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code != 200:
@@ -60,9 +58,7 @@ class Parser(BaseParser):
 
         meta = HTMLMetaExtractor(response.text).extract()
         if "og:video" not in meta:
-            raise ParseError(
-                "Missing 'og:video' metadata, unable to retrieve video URL"
-            )
+            raise ParseError("Missing 'og:video' metadata, unable to retrieve video URL")
 
         if self.VK_URL_REGEX.match(url):
             backlink_url = meta.get("og:url")

@@ -1,8 +1,8 @@
 import logging
 
 from bootstrap.container import Container, load_container
-from shared.info import name, version
 from core.config import load_config
+from shared.info import name, version  # noqa: F401
 
 
 class Instance:

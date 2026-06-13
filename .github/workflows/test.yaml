@@ -28,5 +28,11 @@ jobs:
             - name: Install dev dependencies
               run: pip install -r requirements-dev.txt
 
+            - name: Run linter
+              run: python -m ruff check .
+
+            - name: Check formatting
+              run: python -m ruff format --check .
+
             - name: Run tests
               run: python -m pytest tests/ -v --tb=short

@@ -4,6 +4,7 @@ Tests for Config.
 getLevelName(None) produces "Level None" and crashes logging.basicConfig.
 The fix adds a default of "INFO" to the LOG_LEVEL env-var lookup.
 """
+
 import logging
 import os
 from importlib import reload
@@ -15,6 +16,7 @@ class TestLogLevelDefault:
         env = {k: v for k, v in os.environ.items() if k != "LOG_LEVEL"}
         with patch.dict(os.environ, env, clear=True):
             import core.config as cfg_module
+
             reload(cfg_module)
             return cfg_module.Config()
 
@@ -32,6 +34,7 @@ class TestLogLevelDefault:
     def test_honours_explicit_env_var(self):
         with patch.dict(os.environ, {"LOG_LEVEL": "DEBUG"}):
             import core.config as cfg_module
+
             reload(cfg_module)
             config = cfg_module.Config()
 

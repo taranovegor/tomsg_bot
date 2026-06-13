@@ -4,7 +4,7 @@ class FileError(Exception):
     pass
 
 
-class FileTooLarge(FileError):
+class FileTooLargeError(FileError):
     """Raised when a remote file exceeds configured size limits."""
 
     pass

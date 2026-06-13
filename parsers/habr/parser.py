@@ -1,14 +1,17 @@
 import re
-import requests
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+import requests
 
 from core import (
-    Parser as BaseParser,
-    InvalidUrlError,
-    ParseError,
     Content,
+    InvalidUrlError,
     Link,
+    ParseError,
+)
+from core import (
+    Parser as BaseParser,
 )
 from parsers.habr.html_processor import HTMLProcessor
 
@@ -55,7 +58,7 @@ class Parser(BaseParser):
 
         return Content(
             author=Link(url=f"https://habr.com/ru/users/{author}/", text=author),
-            created_at=datetime.fromisoformat(comment["timePublished"]).astimezone(timezone.utc),
+            created_at=datetime.fromisoformat(comment["timePublished"]).astimezone(UTC),
             text=HTMLProcessor().process(comment["message"]),
             backlink=Link(
                 f"https://habr.com/ru/articles/{article_id}/#comment_{comment_id}",

@@ -1,17 +1,19 @@
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
 from core import (
-    Parser as BaseParser,
-    Entity,
     Content,
-    Video,
+    Entity,
     InvalidUrlError,
-    ParseError,
     Link,
+    ParseError,
     Photo,
+    Video,
+)
+from core import (
+    Parser as BaseParser,
 )
 
 
@@ -65,7 +67,9 @@ class Parser(BaseParser):
             f"❤️ {self.format_counter(status['favourites_count'])}",
         ]
 
-        created_at = datetime.fromisoformat(status["created_at"].replace("Z", "+00:00")).astimezone(timezone.utc)
+        created_at = datetime.fromisoformat(status["created_at"].replace("Z", "+00:00")).astimezone(
+            UTC
+        )
 
         backlink = Link(status["url"])
 
@@ -73,10 +77,12 @@ class Parser(BaseParser):
         for attachment in status.get("media_attachments", []):
             match attachment["type"]:
                 case "image":
-                    media.append(Photo(
-                        resource_url=attachment["url"],
-                        thumbnail_url=attachment.get("preview_url"),
-                    ))
+                    media.append(
+                        Photo(
+                            resource_url=attachment["url"],
+                            thumbnail_url=attachment.get("preview_url"),
+                        )
+                    )
                 case "video" | "gifv":
                     media.append(
                         Video(

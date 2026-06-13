@@ -1,4 +1,5 @@
 import re
+
 import validators
 
 URL_REGEX = re.compile(r"https?://[\w./-]+")

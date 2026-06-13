@@ -1,7 +1,7 @@
 from .domain import (
+    GIF,
     Content,
     Entity,
-    GIF,
     Link,
     MediaType,
     Photo,
