@@ -5,6 +5,7 @@ thumbnail_url=None for Video/GIF caused Telegram API errors because
 InlineQueryResultGif and InlineQueryResultVideo require a non-null thumbnail_url.
 The fix adds a fallback to resource_url when thumbnail_url is absent.
 """
+
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -38,17 +39,20 @@ def _make_inline_query(url: str, user_id: int = 7):
 class TestGifThumbnailFallback:
     @pytest.mark.asyncio
     async def test_gif_without_thumbnail_uses_resource_url(self):
-        from core.domain.entity import Content, GIF
         from telegram import InlineQueryResultGif
+
+        from core.domain.entity import GIF, Content
 
         handler = _make_handler()
         content = Content(
             backlink=MagicMock(url="https://x.com/u/status/1"),
-            media=[GIF(
-                resource_url="http://cdn.test/anim.gif",
-                mime_type="image/gif",
-                thumbnail_url=None,
-            )],
+            media=[
+                GIF(
+                    resource_url="http://cdn.test/anim.gif",
+                    mime_type="image/gif",
+                    thumbnail_url=None,
+                )
+            ],
         )
         handler.parser.parse = MagicMock(return_value=content)
 
@@ -65,17 +69,20 @@ class TestGifThumbnailFallback:
 
     @pytest.mark.asyncio
     async def test_gif_with_explicit_thumbnail_uses_that_url(self):
-        from core.domain.entity import Content, GIF
         from telegram import InlineQueryResultGif
+
+        from core.domain.entity import GIF, Content
 
         handler = _make_handler()
         content = Content(
             backlink=MagicMock(url="https://x.com/u/status/1"),
-            media=[GIF(
-                resource_url="http://cdn.test/anim.gif",
-                mime_type="image/gif",
-                thumbnail_url="http://cdn.test/thumb.jpg",
-            )],
+            media=[
+                GIF(
+                    resource_url="http://cdn.test/anim.gif",
+                    mime_type="image/gif",
+                    thumbnail_url="http://cdn.test/thumb.jpg",
+                )
+            ],
         )
         handler.parser.parse = MagicMock(return_value=content)
 
@@ -93,17 +100,20 @@ class TestGifThumbnailFallback:
 class TestVideoThumbnailFallback:
     @pytest.mark.asyncio
     async def test_video_without_thumbnail_uses_resource_url(self):
-        from core.domain.entity import Content, Video
         from telegram import InlineQueryResultVideo
+
+        from core.domain.entity import Content, Video
 
         handler = _make_handler()
         content = Content(
             backlink=MagicMock(url="https://x.com/u/status/1"),
-            media=[Video(
-                resource_url="http://cdn.test/vid.mp4",
-                mime_type="video/mp4",
-                thumbnail_url=None,
-            )],
+            media=[
+                Video(
+                    resource_url="http://cdn.test/vid.mp4",
+                    mime_type="video/mp4",
+                    thumbnail_url=None,
+                )
+            ],
         )
         handler.parser.parse = MagicMock(return_value=content)
 
@@ -120,17 +130,20 @@ class TestVideoThumbnailFallback:
 
     @pytest.mark.asyncio
     async def test_video_with_explicit_thumbnail_uses_that_url(self):
-        from core.domain.entity import Content, Video
         from telegram import InlineQueryResultVideo
+
+        from core.domain.entity import Content, Video
 
         handler = _make_handler()
         content = Content(
             backlink=MagicMock(url="https://x.com/u/status/1"),
-            media=[Video(
-                resource_url="http://cdn.test/vid.mp4",
-                mime_type="video/mp4",
-                thumbnail_url="http://cdn.test/thumb.jpg",
-            )],
+            media=[
+                Video(
+                    resource_url="http://cdn.test/vid.mp4",
+                    mime_type="video/mp4",
+                    thumbnail_url="http://cdn.test/thumb.jpg",
+                )
+            ],
         )
         handler.parser.parse = MagicMock(return_value=content)
 

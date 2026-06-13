@@ -11,28 +11,29 @@ Real fixtures fetched 2026-06-25 from api.videodropper.app/allinone:
 CDN URLs contain expiry timestamps (oe=…) — they expire in weeks but tests
 mock HTTP so this does not matter.
 """
+
 import json
 import pathlib
 
 import pytest
 import responses as responses_lib
 
-from core.domain.entity import Content, Video, Photo
+from core.domain.entity import Content, Photo, Video
 from core.exceptions import ParseError
 from parsers.instagram.cipher import Cipher
-
 from parsers.instagram.parser import Parser as InstagramParser
+
 _F = pathlib.Path(__file__).parent.parent / "fixtures" / "instagram"
 
-REEL_FIXTURE    = json.loads((_F / "reel_video.json").read_text())
-PHOTO_FIXTURE   = json.loads((_F / "post_single_photo.json").read_text())
+REEL_FIXTURE = json.loads((_F / "reel_video.json").read_text())
+PHOTO_FIXTURE = json.loads((_F / "post_single_photo.json").read_text())
 GALLERY_FIXTURE = json.loads((_F / "post_gallery_5_photos.json").read_text())
 
-PARSER_URL     = "http://instagram-parser.test/parse"
+PARSER_URL = "http://instagram-parser.test/parse"
 ENCRYPTION_KEY = "a" * 16
 
-REEL_URL    = "https://www.instagram.com/reel/DXb_wYHDBmM/"
-PHOTO_URL   = "https://www.instagram.com/p/DU5X2F1CF_X/"
+REEL_URL = "https://www.instagram.com/reel/DXb_wYHDBmM/"
+PHOTO_URL = "https://www.instagram.com/p/DU5X2F1CF_X/"
 GALLERY_URL = "https://www.instagram.com/p/DFfqfgXIK5O/"
 
 
@@ -42,6 +43,7 @@ def parser():
 
 
 # supports()
+
 
 class TestSupports:
     def test_post_url(self, parser):
@@ -68,6 +70,7 @@ class TestSupports:
 
 # parse() — reel (1 video, real fixture)
 
+
 @responses_lib.activate
 def test_reel_returns_content(parser):
     responses_lib.add(responses_lib.GET, PARSER_URL, json=REEL_FIXTURE, status=200)
@@ -93,6 +96,7 @@ def test_reel_video_media(parser):
 
 
 # parse() — single photo post (real fixture; API returns extra "p": true key)
+
 
 @responses_lib.activate
 def test_photo_returns_content(parser):
@@ -127,6 +131,7 @@ def test_photo_unknown_p_key_ignored(parser):
 
 # parse() — gallery (5 photos, real fixture; no "video" key at all)
 
+
 @responses_lib.activate
 def test_gallery_returns_content(parser):
     responses_lib.add(responses_lib.GET, PARSER_URL, json=GALLERY_FIXTURE, status=200)
@@ -160,6 +165,7 @@ def test_gallery_no_video_key_handled(parser):
 
 # Encrypted header
 
+
 @responses_lib.activate
 def test_sends_encrypted_url_header(parser):
     """The request must carry the encrypted URL in the Url header, not plain text."""
@@ -171,6 +177,7 @@ def test_sends_encrypted_url_header(parser):
 
 
 # Error paths
+
 
 @responses_lib.activate
 def test_raises_on_500(parser):

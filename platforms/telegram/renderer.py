@@ -1,5 +1,4 @@
 import html
-from typing import Optional
 
 from core import Content, Link
 from core.ports import Renderer
@@ -61,7 +60,7 @@ class MessageRenderer(Renderer):
         return base.strip()
 
     @staticmethod
-    def _format_link_as_html(link: Optional[Link]) -> str:
+    def _format_link_as_html(link: Link | None) -> str:
         """
         Return an HTML anchor for a Link when both url and text are present.
 

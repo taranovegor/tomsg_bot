@@ -8,7 +8,8 @@ These tests freeze the current output format. They cover:
 - Metric formatting
 - Backlink appending
 """
-from datetime import datetime, timezone, timedelta
+
+from datetime import UTC, datetime
 
 import pytest
 
@@ -22,6 +23,7 @@ def renderer():
 
 
 # Minimal content
+
 
 def test_render_backlink_only(renderer):
     content = Content(backlink=Link("https://x.com/u/status/1"))
@@ -42,6 +44,7 @@ def test_render_with_link_named_backlink(renderer):
 
 
 # Text escaping
+
 
 def test_render_plain_text(renderer):
     content = Content(backlink=Link("https://example.com"), text="Hello world")
@@ -82,7 +85,9 @@ def test_render_text_escapes_non_tag_angle_bracket(renderer):
 
 def test_render_text_normalizes_tag_synonyms(renderer):
     """strong/em/ins/del normalize to b/i/u/s."""
-    content = Content(backlink=Link("https://example.com"), text="<strong>bold</strong> <em>italic</em>")
+    content = Content(
+        backlink=Link("https://example.com"), text="<strong>bold</strong> <em>italic</em>"
+    )
     result = renderer.render(content)
     assert "<b>bold</b>" in result
     assert "<i>italic</i>" in result
@@ -91,7 +96,9 @@ def test_render_text_normalizes_tag_synonyms(renderer):
 
 def test_render_text_strips_non_whitelisted_attributes(renderer):
     """Attributes on whitelisted tags are stripped unless explicitly allowed."""
-    content = Content(backlink=Link("https://example.com"), text='<b class="x" onclick="alert(1)">text</b>')
+    content = Content(
+        backlink=Link("https://example.com"), text='<b class="x" onclick="alert(1)">text</b>'
+    )
     result = renderer.render(content)
     assert "<b>text</b>" in result or '<b class="x">text</b>' not in result
     assert "onclick" not in result
@@ -99,14 +106,18 @@ def test_render_text_strips_non_whitelisted_attributes(renderer):
 
 def test_render_text_href_kept_on_anchor(renderer):
     """href is allowed on <a> tags."""
-    content = Content(backlink=Link("https://example.com"), text='<a href="https://safe.com">link</a>')
+    content = Content(
+        backlink=Link("https://example.com"), text='<a href="https://safe.com">link</a>'
+    )
     result = renderer.render(content)
     assert '<a href="https://safe.com">' in result
 
 
 def test_render_text_href_javascript_stripped(renderer):
     """javascript: href is removed."""
-    content = Content(backlink=Link("https://example.com"), text='<a href="javascript:alert(1)">xss</a>')
+    content = Content(
+        backlink=Link("https://example.com"), text='<a href="javascript:alert(1)">xss</a>'
+    )
     result = renderer.render(content)
     assert "javascript" not in result
 
@@ -126,6 +137,7 @@ def test_render_text_tg_spoiler_preserved(renderer):
 
 
 # Author
+
 
 def test_render_author_link(renderer):
     content = Content(
@@ -157,9 +169,10 @@ def test_render_author_with_special_chars_escaped(renderer):
 
 # Timestamp
 
+
 def test_render_created_at_format(renderer):
     """Timestamp uses %d.%m.%y %H:%M %Z — freeze the format as-is."""
-    dt = datetime(2024, 1, 15, 9, 30, tzinfo=timezone.utc)
+    dt = datetime(2024, 1, 15, 9, 30, tzinfo=UTC)
     content = Content(backlink=Link("https://example.com"), created_at=dt)
     result = renderer.render(content)
     assert "15.01.24 09:30 UTC" in result
@@ -176,7 +189,7 @@ def test_render_naive_datetime_no_tz_suffix(renderer):
 
 def test_render_author_and_created_at_on_same_line(renderer):
     """Author and timestamp are placed on the same line separated by ', '."""
-    dt = datetime(2024, 1, 1, 0, 0, tzinfo=timezone.utc)
+    dt = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
     content = Content(
         backlink=Link("https://example.com"),
         author=Link("https://x.com/u", "User"),
@@ -190,6 +203,7 @@ def test_render_author_and_created_at_on_same_line(renderer):
 
 
 # Metrics
+
 
 def test_render_metrics(renderer):
     content = Content(
@@ -208,12 +222,13 @@ def test_render_empty_metrics_not_shown(renderer):
 
 # Full composition
 
+
 def test_render_with_link_full_content(renderer):
     """
     Full Content object → expected HTML output.
     Freezes the complete rendering contract end-to-end.
     """
-    dt = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    dt = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
     content = Content(
         backlink=Link("https://x.com/user/status/1", "Original post"),
         author=Link("https://x.com/user", "Test User"),

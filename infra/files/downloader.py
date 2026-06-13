@@ -1,13 +1,13 @@
-import aiofiles
 import asyncio
-
-import aiohttp
 import os
 import re
 import urllib.parse
 import uuid
 
-from .exception import FileDownloadError, FileTooLarge
+import aiofiles
+import aiohttp
+
+from .exception import FileDownloadError, FileTooLargeError
 
 
 class MediaDownloader:
@@ -25,7 +25,7 @@ class MediaDownloader:
         """Stream-download URL to dest_path and return total bytes written.
 
         - Streams in CHUNK_SIZE increments.
-        - Raises FileTooLarge when max_bytes is set and exceeded (checked
+        - Raises FileTooLargeError when max_bytes is set and exceeded (checked
           per-chunk, so a lying or absent Content-Length does not bypass it).
         - Raises FileDownloadError on HTTP error responses.
         - Removes partial file on any exception before re-raising.
@@ -36,9 +36,7 @@ class MediaDownloader:
         try:
             downloaded = 0
             async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(
-                    url, headers=headers, allow_redirects=True
-                ) as resp:
+                async with session.get(url, headers=headers, allow_redirects=True) as resp:
                     if resp.status >= 400:
                         raise FileDownloadError(f"HTTP {resp.status} for {url}")
 
@@ -48,7 +46,7 @@ class MediaDownloader:
                                 break
                             downloaded += len(chunk)
                             if self.max_bytes and downloaded > self.max_bytes:
-                                raise FileTooLarge(
+                                raise FileTooLargeError(
                                     f"Download exceeded {self.max_bytes} bytes: {url}"
                                 )
                             await fd.write(chunk)

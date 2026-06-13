@@ -3,10 +3,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 
-class MediaType(str, enum.Enum):
+class MediaType(enum.StrEnum):
     """Represents the type of media or content entity."""
 
     __slots__ = ()
@@ -82,11 +81,11 @@ class Content(Entity):
     """Represents content with metadata, text, author, metrics, creation date, and media."""
 
     backlink: Link
-    text: Optional[str] = None
-    author: Optional[Link] = None
-    metrics: Optional[list[str]] = None
-    created_at: Optional[datetime] = None
-    media: Optional[list[Photo | Video | GIF]] = None
+    text: str | None = None
+    author: Link | None = None
+    metrics: list[str] | None = None
+    created_at: datetime | None = None
+    media: list[Photo | Video | GIF] | None = None
 
     @staticmethod
     def type() -> MediaType:
@@ -100,17 +99,17 @@ class FileInfo:
 
     path: Path
     size: int
-    mime_type: Optional[str] = None
-    original_url: Optional[str] = None
+    mime_type: str | None = None
+    original_url: str | None = None
 
 
 @dataclass
 class VideoMeta:
     """Stores metadata for a video."""
 
-    width: Optional[int]
-    height: Optional[int]
-    duration: Optional[int] = None
+    width: int | None
+    height: int | None
+    duration: int | None = None
 
 
 @dataclass

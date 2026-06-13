@@ -4,18 +4,19 @@ Tests for core/pipeline — the platform-neutral processing pipeline.
 Uses fakes for parser, file resolver, and video processor so no real
 network or filesystem I/O is exercised.
 """
+
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from core.domain.entity import Content, Photo, Video, GIF, Link, FileInfo, VideoMeta, PipelineResult
+from core.domain.entity import GIF, Content, FileInfo, Link, Photo, PipelineResult, Video, VideoMeta
 from core.exceptions import InvalidUrlError
 from core.pipeline import Pipeline
-
 
 # ---------------------------------------------------------------------------
 # Fakes
 # ---------------------------------------------------------------------------
+
 
 class FakeParser:
     def __init__(self, content: Content):
@@ -33,6 +34,7 @@ class FakeFailingParser:
     def parse(self, url: str) -> Content:
         msg = f"Parser not found for string: {url}"
         from core.exceptions import ParserNotFoundError
+
         raise ParserNotFoundError(msg)
 
 
@@ -99,6 +101,7 @@ class TestPipelineParsing:
             video_processor=FakeVideoProcessor(),
         )
         from core.exceptions import ParserNotFoundError
+
         with pytest.raises(ParserNotFoundError):
             await pipeline.run("https://unsupported.example.com")
 
@@ -166,9 +169,7 @@ class TestPipelineFileResolution:
         fake_fi = FileInfo(path="/tmp/ok.jpg", size=100)
 
         resolver = FakeFileResolver()
-        resolver.resolve = AsyncMock(
-            side_effect=[fake_fi, RuntimeError("connection reset")]
-        )
+        resolver.resolve = AsyncMock(side_effect=[fake_fi, RuntimeError("connection reset")])
 
         pipeline = Pipeline(
             parser=FakeParser(content),
@@ -191,9 +192,7 @@ class TestPipelineFileResolution:
             ],
         )
         resolver = FakeFileResolver()
-        resolver.resolve = AsyncMock(
-            side_effect=[RuntimeError("err1"), RuntimeError("err2")]
-        )
+        resolver.resolve = AsyncMock(side_effect=[RuntimeError("err1"), RuntimeError("err2")])
 
         pipeline = Pipeline(
             parser=FakeParser(content),
@@ -283,9 +282,7 @@ class TestPipelineVideoProcessing:
         resolver.resolve = AsyncMock(return_value=fake_fi)
 
         processor = FakeVideoProcessor()
-        processor.process_video = AsyncMock(
-            side_effect=RuntimeError("ffprobe failed")
-        )
+        processor.process_video = AsyncMock(side_effect=RuntimeError("ffprobe failed"))
 
         pipeline = Pipeline(
             parser=FakeParser(content),

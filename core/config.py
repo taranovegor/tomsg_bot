@@ -77,7 +77,7 @@ class Config:
     """Holds the entire configuration for all services."""
 
     def __init__(self):
-        """Initializes the configuration with environment variables and specific service configurations."""
+        """Initializes the configuration from environment variables and service configs."""
         self.version = os.getenv("VERSION")
         self.debug = os.getenv("DEBUG") == "true"
         self.log_level = logging.getLevelName(os.getenv("LOG_LEVEL", "INFO"))

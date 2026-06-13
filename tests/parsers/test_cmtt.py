@@ -8,9 +8,10 @@ Real fixtures fetched 2026-06-25 from api.dtf.ru/v2.5/comments:
   cmtt/comment_with_image.json — commentId=50739994 (PNG image, stored for future tests)
   cmtt/comment_with_gif.json   — commentId=49624164 (GIF with isVideo=true, stored for future tests)
 """
+
 import json
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import responses as responses_lib
@@ -20,7 +21,9 @@ from core.exceptions import ParseError
 from parsers.cmtt.parser import Parser as CmttParser
 
 FIXTURE = json.loads(
-    (pathlib.Path(__file__).parent.parent / "fixtures" / "cmtt" / "comment_text_only.json").read_text()
+    (
+        pathlib.Path(__file__).parent.parent / "fixtures" / "cmtt" / "comment_text_only.json"
+    ).read_text()
 )
 
 COMMENT_ID = 49646537
@@ -36,6 +39,7 @@ def parser():
 
 
 # supports()
+
 
 class TestSupports:
     def test_dtf_comment_url(self, parser):
@@ -59,6 +63,7 @@ class TestSupports:
 
 
 # parse() — happy path with mocked HTTP (real fixture)
+
 
 @responses_lib.activate
 def test_parse_dtf_returns_content(parser):
@@ -100,7 +105,7 @@ def test_parse_created_at_value(parser):
     responses_lib.add(responses_lib.GET, DTF_API, json=FIXTURE, status=200)
     content = parser.parse(DTF_URL)
     raw_ts = FIXTURE["result"]["items"][0]["date"]
-    assert content.created_at == datetime.fromtimestamp(raw_ts, tz=timezone.utc)
+    assert content.created_at == datetime.fromtimestamp(raw_ts, tz=UTC)
 
 
 @responses_lib.activate

@@ -11,35 +11,38 @@ Real fixtures fetched 2026-06-25 from api.vxtwitter.com:
 Hand-crafted fixture kept for edge-case tests:
   twitter/crafted_photo_with_html.json — user_name with (@handle) suffix, HTML in text
 """
+
 import json
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import responses as responses_lib
 
 from core.domain.entity import Content, Photo, Video
-from core.exceptions import ParseError, InvalidUrlError
+from core.exceptions import InvalidUrlError, ParseError
 from parsers.twitter.parser import Parser as TwitterParser
 
 _F = pathlib.Path(__file__).parent.parent / "fixtures" / "twitter"
 
 GALLERY = json.loads((_F / "gallery_4_photos.json").read_text())
 VIDEO_F = json.loads((_F / "video_single.json").read_text())
-TEXT_F  = json.loads((_F / "text_only.json").read_text())
+TEXT_F = json.loads((_F / "text_only.json").read_text())
 CRAFTED = json.loads((_F / "crafted_photo_with_html.json").read_text())
 
-GALLERY_URL   = "https://x.com/AURORAmusic/status/2000966638414241957"
-VIDEO_URL     = "https://x.com/AURORAmusic/status/1882129591508296135"
-TEXT_URL      = "https://x.com/AURORAmusic/status/1068183074691837954"
-CRAFTED_URL   = "https://x.com/testuser/status/1234567890"
+GALLERY_URL = "https://x.com/AURORAmusic/status/2000966638414241957"
+VIDEO_URL = "https://x.com/AURORAmusic/status/1882129591508296135"
+TEXT_URL = "https://x.com/AURORAmusic/status/1068183074691837954"
+CRAFTED_URL = "https://x.com/testuser/status/1234567890"
+
 
 def _api_url(status_id: str) -> str:
     return f"https://api.vxtwitter.com/status/{status_id}"
 
+
 GALLERY_API = _api_url("2000966638414241957")
-VIDEO_API   = _api_url("1882129591508296135")
-TEXT_API    = _api_url("1068183074691837954")
+VIDEO_API = _api_url("1882129591508296135")
+TEXT_API = _api_url("1068183074691837954")
 CRAFTED_API = _api_url("1234567890")
 
 
@@ -49,6 +52,7 @@ def parser():
 
 
 # supports()
+
 
 class TestSupports:
     def test_x_com_status_url(self, parser):
@@ -75,6 +79,7 @@ class TestSupports:
 
 # parse() — gallery tweet (4 photos, real fixture)
 
+
 @responses_lib.activate
 def test_gallery_returns_content(parser):
     responses_lib.add(responses_lib.GET, GALLERY_API, json=GALLERY, status=200)
@@ -100,7 +105,7 @@ def test_gallery_text(parser):
 def test_gallery_created_at(parser):
     responses_lib.add(responses_lib.GET, GALLERY_API, json=GALLERY, status=200)
     content = parser.parse(GALLERY_URL)
-    assert content.created_at == datetime(2025, 12, 16, 16, 29, 57, tzinfo=timezone.utc)
+    assert content.created_at == datetime(2025, 12, 16, 16, 29, 57, tzinfo=UTC)
     assert content.created_at.tzinfo is not None
 
 
@@ -138,6 +143,7 @@ def test_gallery_backlink(parser):
 
 # parse() — video tweet (real fixture)
 
+
 @responses_lib.activate
 def test_video_media_type(parser):
     responses_lib.add(responses_lib.GET, VIDEO_API, json=VIDEO_F, status=200)
@@ -170,6 +176,7 @@ def test_video_metrics(parser):
 
 # parse() — text-only tweet (no media, real fixture)
 
+
 @responses_lib.activate
 def test_text_only_no_media(parser):
     responses_lib.add(responses_lib.GET, TEXT_API, json=TEXT_F, status=200)
@@ -194,6 +201,7 @@ def test_text_only_metrics(parser):
 
 # parse() — edge cases using hand-crafted fixture
 
+
 @responses_lib.activate
 def test_handle_suffix_stripped_from_user_name(parser):
     """user_name 'Test User (@testuser)' → author.text 'Test User'."""
@@ -213,6 +221,7 @@ def test_html_tags_preserved_in_text(parser):
 
 # Error paths
 
+
 @responses_lib.activate
 def test_parse_raises_on_non_200(parser):
     responses_lib.add(responses_lib.GET, GALLERY_API, status=500)
@@ -226,6 +235,7 @@ def test_parse_raises_invalid_url(parser):
 
 
 # format_counter()
+
 
 class TestFormatCounter:
     def test_below_1k(self):

@@ -1,10 +1,11 @@
 import asyncio
 import logging
+
+from core.domain.entity import PipelineResult, Video
+from core.exceptions import InvalidUrlError
+from core.ports import Parser
 from infra.files.resolver import FileResolver
 from infra.media.processor import VideoProcessor
-from core.ports import Parser
-from core.domain.entity import Content, Entity, Video, FileInfo, VideoMeta, PipelineResult
-from core.exceptions import InvalidUrlError, ParserNotFoundError
 from shared.urls import is_valid_url
 
 
@@ -30,17 +31,13 @@ class Pipeline:
         if not content.media:
             return PipelineResult(content=content)
 
-        resolve_tasks = [
-            self.file_resolver.resolve(m.resource_url) for m in content.media
-        ]
+        resolve_tasks = [self.file_resolver.resolve(m.resource_url) for m in content.media]
         raw_results = await asyncio.gather(*resolve_tasks, return_exceptions=True)
 
         successful_pairs = []
         for media, res in zip(content.media, raw_results):
             if isinstance(res, Exception):
-                logging.warning(
-                    "Failed to resolve %s: %s", media.resource_url, res
-                )
+                logging.warning("Failed to resolve %s: %s", media.resource_url, res)
                 continue
             successful_pairs.append((media, res))
 

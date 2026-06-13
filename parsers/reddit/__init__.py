@@ -1,6 +1,7 @@
-from .parser import Parser as _RedditParser
+from parsers.registry import build_user_agent, register
+
 from .html_adapter import HTMLNodeAdapter
-from parsers.registry import register, build_user_agent
+from .parser import Parser as _RedditParser
 
 
 @register("reddit")

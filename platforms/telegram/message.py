@@ -1,24 +1,23 @@
 import asyncio
 import logging
 from io import BufferedReader
-from typing import Optional
 from urllib.parse import urlparse
 
 from telegram import (
-    Update,
-    InputMediaPhoto,
-    InputMediaAnimation,
-    InputMediaVideo,
     InputMedia,
+    InputMediaAnimation,
+    InputMediaPhoto,
+    InputMediaVideo,
+    Update,
 )
-from telegram.constants import ChatAction, ParseMode, ChatType
+from telegram.constants import ChatAction, ChatType, ParseMode
 from telegram.ext import ContextTypes
 
-from infra.analytics.analytics import Events, Event, Analytics
-from core.domain.entity import Entity, Video, GIF, Photo, FileInfo, VideoMeta, PipelineResult
+from core.domain.entity import GIF, Entity, FileInfo, Photo, PipelineResult, Video, VideoMeta
 from core.exceptions import InvalidUrlError, ParserNotFoundError
 from core.pipeline import Pipeline
 from core.ports.delivery import Delivery
+from infra.analytics.analytics import Analytics, Event, Events
 from platforms.telegram import MEDIA_GROUP_CHUNK_SIZE
 from platforms.telegram.renderer import MessageRenderer
 
@@ -42,16 +41,12 @@ class TelegramDelivery(Delivery):
         self.renderer = renderer
         self.chunk_size = chunk_size
 
-    async def send(
-        self, target, result: PipelineResult
-    ) -> None:
+    async def send(self, target, result: PipelineResult) -> None:
         kwargs = {"parse_mode": ParseMode.HTML, "do_quote": True}
         text = self.renderer.render_with_link(result.content)
 
         if not result.resolved_media:
-            await target.reply_text(
-                text, disable_web_page_preview=True, **kwargs
-            )
+            await target.reply_text(text, disable_web_page_preview=True, **kwargs)
             return
 
         all_files_to_close = []
@@ -84,9 +79,7 @@ class TelegramDelivery(Delivery):
                     regular_media.append(media_input)
 
             if not regular_media and not gif_inputs:
-                await target.reply_text(
-                    text, disable_web_page_preview=True, **kwargs
-                )
+                await target.reply_text(text, disable_web_page_preview=True, **kwargs)
                 return
 
             caption_sent = False
@@ -125,31 +118,25 @@ class TelegramDelivery(Delivery):
                 try:
                     await asyncio.to_thread(fh.close)
                 except Exception as e:
-                    logging.exception(
-                        "Failed to close file handler: %s", e
-                    )
+                    logging.exception("Failed to close file handler: %s", e)
 
             for path in all_files_to_remove:
                 try:
                     if path.exists():
                         await asyncio.to_thread(path.unlink)
                 except Exception as e:
-                    logging.exception(
-                        "Failed to remove file %s: %s", path, e
-                    )
+                    logging.exception("Failed to remove file %s: %s", path, e)
 
     async def _prepare_media(
         self,
         media: Entity,
         file_info: FileInfo,
         video_meta: dict[str, VideoMeta],
-    ) -> Optional[tuple[InputMedia, list[BufferedReader], list]]:
+    ) -> tuple[InputMedia, list[BufferedReader], list] | None:
         files_to_close = []
         files_to_remove = []
 
-        file_handler = await asyncio.to_thread(
-            lambda: open(file_info.path, "rb")
-        )
+        file_handler = await asyncio.to_thread(lambda: open(file_info.path, "rb"))
         files_to_close.append(file_handler)
         files_to_remove.append(file_info.path)
 
@@ -199,9 +186,7 @@ class MessageHandler:
         self.analytics = analytics
         self.platform = platform
 
-    async def handle(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         message = update.message
         if not message:
             return
@@ -216,9 +201,7 @@ class MessageHandler:
         events = Events(message.from_user.id, self.platform, "message")
 
         asyncio.create_task(
-            context.bot.send_chat_action(
-                update.effective_chat.id, ChatAction.TYPING
-            )
+            context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
         )
 
         kwargs = {"parse_mode": ParseMode.HTML, "do_quote": True}
@@ -230,14 +213,8 @@ class MessageHandler:
             task.add_done_callback(_log_task_exception)
         except InvalidUrlError as e:
             logging.warning("Invalid URL received: %s", text)
-            events.add(
-                Event("exception")
-                .add("description", str(e))
-                .add("type", type(e).__name__)
-            )
-            await message.reply_text(
-                "Введённый текст не является корректным URL.", **kwargs
-            )
+            events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
+            await message.reply_text("Введённый текст не является корректным URL.", **kwargs)
         except ParserNotFoundError as e:
             hostname = urlparse(text).netloc
             logging.warning("Parser not found for hostname: %s", hostname)
@@ -247,18 +224,10 @@ class MessageHandler:
                 .add("type", type(e).__name__)
                 .add("hostname", hostname)
             )
-            await message.reply_text(
-                "Ссылка с этого ресурса ещё не поддерживается.", **kwargs
-            )
+            await message.reply_text("Ссылка с этого ресурса ещё не поддерживается.", **kwargs)
         except Exception as e:
-            logging.error(
-                "Exception while processing text: %s", text, exc_info=True
-            )
-            events.add(
-                Event("exception")
-                .add("description", str(e))
-                .add("type", type(e).__name__)
-            )
+            logging.error("Exception while processing text: %s", text, exc_info=True)
+            events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
             await message.reply_text(
                 "Произошла ошибка при обработке вашего запроса. Повторите позже.",
                 **kwargs,

@@ -1,17 +1,19 @@
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
 from core import (
-    Parser as BaseParser,
-    Entity,
     Content,
-    Video,
+    Entity,
     InvalidUrlError,
-    ParseError,
     Link,
+    ParseError,
     Photo,
+    Video,
+)
+from core import (
+    Parser as BaseParser,
 )
 
 
@@ -51,34 +53,34 @@ class Parser(BaseParser):
         tweet = response.json()
 
         author = Link(
-            f"https://x.com/{tweet["user_screen_name"]}",
+            f"https://x.com/{tweet['user_screen_name']}",
             re.sub(r"\s*\(@[^)]+\)", "", tweet["user_name"]),
         )
 
         content = tweet["text"] if "text" in tweet else ""
         metrics = [
-            f"💬 {self.format_counter(tweet["replies"])}",
-            f"🔁 {self.format_counter(tweet["retweets"])}",
-            f"❤️ {self.format_counter(tweet["likes"])}",
+            f"💬 {self.format_counter(tweet['replies'])}",
+            f"🔁 {self.format_counter(tweet['retweets'])}",
+            f"❤️ {self.format_counter(tweet['likes'])}",
         ]
 
         created_at = datetime.strptime(
             tweet["date"],
             "%a %b %d %H:%M:%S %z %Y",
-        ).astimezone(timezone.utc)
+        ).astimezone(UTC)
 
-        backlink = Link(
-            f"https://x.com/{tweet["user_screen_name"]}/status/{status_id}"
-        )
+        backlink = Link(f"https://x.com/{tweet['user_screen_name']}/status/{status_id}")
 
         media = []
         for item in tweet["media_extended"]:
             match item["type"]:
                 case "image" | "photo":
-                    media.append(Photo(
-                        resource_url=item["url"],
-                        thumbnail_url=item["thumbnail_url"],
-                    ))
+                    media.append(
+                        Photo(
+                            resource_url=item["url"],
+                            thumbnail_url=item["thumbnail_url"],
+                        )
+                    )
                 case "video" | "gif":
                     media.append(
                         Video(

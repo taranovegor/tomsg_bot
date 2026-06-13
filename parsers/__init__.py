@@ -14,9 +14,7 @@ def _discover():
             try:
                 importlib.import_module(f"{__name__}.{modname}")
             except Exception:
-                logging.error(
-                    "Failed to import parser package %s", modname, exc_info=True
-                )
+                logging.error("Failed to import parser package %s", modname, exc_info=True)
 
 
 _discover()

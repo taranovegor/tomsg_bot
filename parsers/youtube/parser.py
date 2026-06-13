@@ -1,14 +1,16 @@
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
 from core import (
-    Parser as BaseParser,
-    InvalidUrlError,
-    ParseError,
-    Link,
     Content,
+    InvalidUrlError,
+    Link,
+    ParseError,
+)
+from core import (
+    Parser as BaseParser,
 )
 
 
@@ -48,9 +50,7 @@ class Parser(BaseParser):
             timeout=self.timeout,
         )
         if response.status_code != 200:
-            raise ParseError(
-                f"Error fetching comment data: HTTP {response.status_code}."
-            )
+            raise ParseError(f"Error fetching comment data: HTTP {response.status_code}.")
 
         items = response.json().get("items", [])
         if not items:
@@ -68,5 +68,5 @@ class Parser(BaseParser):
             text=item["textDisplay"],
             author=author,
             metrics=metrics,
-            created_at=datetime.fromisoformat(item["publishedAt"]).astimezone(timezone.utc),
+            created_at=datetime.fromisoformat(item["publishedAt"]).astimezone(UTC),
         )

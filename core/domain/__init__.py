@@ -1,14 +1,14 @@
 from .entity import (
-    Entity,
-    Link,
-    Photo,
-    Video,
     GIF,
     Content,
-    MediaType,
+    Entity,
     FileInfo,
-    VideoMeta,
+    Link,
+    MediaType,
+    Photo,
     PipelineResult,
+    Video,
+    VideoMeta,
 )
 
 __all__ = [

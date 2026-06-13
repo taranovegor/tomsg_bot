@@ -1,5 +1,6 @@
 import aiohttp
-from .exception import FileTooLarge
+
+from .exception import FileTooLargeError
 
 
 class RemoteFileValidator:
@@ -20,7 +21,7 @@ class RemoteFileValidator:
         """
         Ensure remote file at `url` does not exceed `max_bytes`.
 
-        Tries to determine size via HEAD then Range. Raises FileTooLarge if
+        Tries to determine size via HEAD then Range. Raises FileTooLargeError if
         size is known and exceeds max_bytes. If size cannot be determined,
         the method returns silently.
         """
@@ -36,15 +37,11 @@ class RemoteFileValidator:
                 return
 
             if size > self.max_bytes:
-                raise FileTooLarge(f"Remote file too large: {url}")
+                raise FileTooLargeError(f"Remote file too large: {url}")
 
-    async def _get_size_via_head(
-        self, session: aiohttp.ClientSession, url: str
-    ) -> int | None:
+    async def _get_size_via_head(self, session: aiohttp.ClientSession, url: str) -> int | None:
         """Use HEAD to read Content-Length. Return int size or None if unavailable/invalid."""
-        async with session.head(
-            url, headers=self.headers, allow_redirects=True
-        ) as resp:
+        async with session.head(url, headers=self.headers, allow_redirects=True) as resp:
             if resp.status >= 400:
                 return None
 
@@ -54,9 +51,7 @@ class RemoteFileValidator:
             except ValueError:
                 return None
 
-    async def _get_size_via_range(
-        self, session: aiohttp.ClientSession, url: str
-    ) -> int | None:
+    async def _get_size_via_range(self, session: aiohttp.ClientSession, url: str) -> int | None:
         """
         Request the first byte and parse total size from Content-Range header.
 

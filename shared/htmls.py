@@ -13,9 +13,19 @@ TAG_SYNONYMS = {
     "tg-spoiler": "tg-spoiler",
 }
 
-TELEGRAM_WHITELIST_TAGS = frozenset({
-    "b", "i", "u", "s", "a", "code", "pre", "blockquote", "tg-spoiler",
-})
+TELEGRAM_WHITELIST_TAGS = frozenset(
+    {
+        "b",
+        "i",
+        "u",
+        "s",
+        "a",
+        "code",
+        "pre",
+        "blockquote",
+        "tg-spoiler",
+    }
+)
 
 ALLOWED_ATTRS: dict[str, frozenset[str]] = {
     "a": frozenset({"href"}),
@@ -80,7 +90,7 @@ def sanitize_html(text: str) -> str:
         raw_attrs: list[tuple[str, str]] = []
         for am in ATTR_RE.finditer(raw_attrs_str):
             k = am.group(1).lower()
-            v = (am.group(2) or am.group(3) or am.group(4) or "")
+            v = am.group(2) or am.group(3) or am.group(4) or ""
             allowed = ALLOWED_ATTRS.get(tag_name, frozenset())
             if k not in allowed:
                 continue

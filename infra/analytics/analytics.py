@@ -1,7 +1,6 @@
 import time
-
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Self
+from typing import Any, Self
 
 
 class Event:
@@ -40,7 +39,7 @@ class Event:
         return self._data.items()
 
 
-class Events(List[Event]):
+class Events(list[Event]):
     """Represents a collection of events associated with a user."""
 
     def __init__(self, user_id: int, platform: str, handler_type: str):
