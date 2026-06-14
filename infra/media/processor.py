@@ -4,11 +4,12 @@ from pathlib import Path
 
 import ffmpeg
 
+from core.ports import VideoProcessor as VideoProcessorPort
 from infra.files.storage import LocalStorage
 from infra.media.entity import VideoMeta
 
 
-class VideoProcessor:
+class VideoProcessor(VideoProcessorPort):
     """Utilities to probe video info (dimensions, duration)."""
 
     def __init__(self, storage: LocalStorage):

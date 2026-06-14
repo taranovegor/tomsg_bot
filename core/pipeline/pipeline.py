@@ -3,9 +3,7 @@ import logging
 
 from core.domain.entity import PipelineResult, Video
 from core.exceptions import InvalidUrlError
-from core.ports import Parser
-from infra.files.resolver import FileResolver
-from infra.media.processor import VideoProcessor
+from core.ports import FileResolver, Parser, VideoProcessor
 from shared.urls import is_valid_url
 
 
