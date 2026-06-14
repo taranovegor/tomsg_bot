@@ -1,12 +1,14 @@
 from pathlib import Path
 
+from core.ports import FileResolver as FileResolverPort
+
 from .downloader import MediaDownloader
 from .entity import FileInfo
 from .storage import LocalStorage
 from .validator import RemoteFileValidator
 
 
-class FileResolver:
+class FileResolver(FileResolverPort):
     """Validate remote files, download them into local storage and return FileInfo."""
 
     def __init__(
