@@ -1,2 +1,20 @@
-# CMTT Comment Parser
-This package contains a parser for extracting and formatting comments from the vc.ru, dtf.ru websites. The primary functionality includes fetching comment data for specific articles and presenting it in a structured format with metadata such as the author, content, creation date, and metrics. The parser is implemented as a subclass of a base parser (`core.Parser`).
+# CMTT Comment Parser (DTF / vc.ru)
+
+Extracts a comment (author, text, reactions) from DTF or vc.ru — both built on the CMTT platform.
+
+## Supported links
+- `https://dtf.ru/<...>?comment=<id>`
+- `https://vc.ru/<...>?comment=<id>`
+
+## Data source
+CMTT API: `https://api.<domain>/v2.5/comments?commentId=<id>`. No authentication.
+
+## Configuration
+Not required.
+
+## Registration
+`@register("cmtt")` → service key `parser_cmtt`.
+
+## Notes & limitations
+- Only `https` links are supported.
+- Timestamps are normalized to UTC.

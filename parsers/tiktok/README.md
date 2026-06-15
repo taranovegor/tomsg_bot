@@ -1,2 +1,23 @@
-# TikTok Video Parser
-This package contains a parser for extracting video information from TikTok URLs. The main functionality includes supporting both short and full URLs, extracting video metadata, and providing URLs for video content and its thumbnail in a structured format. The parser is implemented as a subclass of a base parser (`core.Parser`).
+# TikTok Parser
+
+Extracts a TikTok video from short or full video links.
+
+## Supported links
+- `https://(vm|vt).tiktok.com/<id>` (short, resolved via redirect)
+- `https://(www.|m.)tiktok.com/@<user>/video/<id>`
+
+## Data source
+Short links are resolved with an HTTP redirect; the video and thumbnail URLs are built from
+the configured resource templates.
+
+## Configuration
+| Env                             | Purpose                                            | Required |
+|---------------------------------|----------------------------------------------------|----------|
+| `TIKTOK_VIDEO_RESOURCE_URL`     | URL template for the video file (`%s` = video ID). | yes      |
+| `TIKTOK_THUMBNAIL_RESOURCE_URL` | URL template for the thumbnail (`%s` = video ID).  | yes      |
+
+## Registration
+`@register("tiktok")` → service key `parser_tiktok`.
+
+## Notes & limitations
+- Relies on external resource templates rather than the official TikTok API.

@@ -1,2 +1,21 @@
-# VK Clips Parser
-This package contains a parser for extracting video information from VK & OK Clips URLs. The main functionality includes supporting both short and full URLs, extracting video metadata, and providing URLs for video content and its thumbnail in a structured format. The parser is implemented as a subclass of a base parser (`core.Parser`).
+# VK / OK Clips Parser
+
+Extracts a VK or OK (Odnoklassniki) clip as a video.
+
+## Supported links
+- `https://vk.com/clip...` / `https://vk.com/clips...`
+- `https://ok.ru/clip?owner_id=...`
+
+## Data source
+Clip identifiers are derived from the URL; a static thumbnail is used for the result.
+
+## Configuration
+| Env                | Purpose                              | Required |
+|--------------------|--------------------------------------|----------|
+| `VK_THUMBNAIL_URL` | Static thumbnail URL used for clips. | yes      |
+
+## Registration
+`@register("vk")` → service key `parser_vk`.
+
+## Notes & limitations
+- Handles both vk.com and ok.ru clip links.

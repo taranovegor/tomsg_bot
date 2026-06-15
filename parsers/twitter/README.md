@@ -1,2 +1,20 @@
-# Tweets (X's) Parser
-This package contains a parser for extracting video information from Twitter (X) URLs. The main functionality includes supporting both short and full URLs, extracting video metadata, and providing URLs for text and video content and its thumbnail in a structured format. The parser is implemented as a subclass of a base parser (`core.Parser`).
+# Twitter / X Parser
+
+Extracts a tweet (text, media, author and engagement metrics) from a Twitter/X status link.
+
+## Supported links
+- `https://x.com/<user>/status/<id>`
+- `https://twitter.com/<user>/status/<id>`
+
+## Data source
+[vxtwitter](https://github.com/dylanpdx/BetterTwitFix) public API:
+`https://api.vxtwitter.com/status/<id>`. No authentication.
+
+## Configuration
+Not required.
+
+## Registration
+`@register("twitter")` → service key `parser_twitter`.
+
+## Notes & limitations
+- Timestamps are normalized to UTC.
