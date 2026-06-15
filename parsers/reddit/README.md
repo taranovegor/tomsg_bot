@@ -1,13 +1,27 @@
 # Reddit Comment Parser
-This package provides a Python library for parsing Reddit comments from a given Reddit URL. It authenticates with Reddit's API, retrieves comment data, processes the HTML content, and returns a structured representation of the comment, including metadata and metrics.
 
-## Authentication
-This package uses Reddit's OAuth2-based API for retrieving comment data. You'll need to provide:
+Extracts a Reddit comment (author, text, metrics) from a comment link, using Reddit's OAuth2 API.
 
-- `client_id`: Your application's client ID from Reddit.
-- `client_secret`: Your application's secret key from Reddit.
-- `user_agent`: A unique string to identify your application (e.g., `os:app:version (by /u/ownername)`).
+## Supported links
+- `https://www.reddit.com/r/<sub>/comments/<post_id>/.../<comment_id>`
+- short `reddit.com` share links (resolved via redirect)
 
-## Useful Resources for Reddit API Integration
+## Data source
+Reddit Data API: `https://www.reddit.com/api/v1/access_token` (OAuth2) and `.../api/info.json`.
+
+## Configuration
+| Env                         | Purpose                                                  | Required |
+|-----------------------------|----------------------------------------------------------|----------|
+| `REDDIT_CLIENT_ID`          | Application client ID.                                   | yes      |
+| `REDDIT_CLIENT_SECRET`      | Application client secret.                               | yes      |
+| `REDDIT_APP_OWNER_USERNAME` | Owner username, sent in the User-Agent (`by /u/<name>`). | yes      |
+
+## Registration
+`@register("reddit")` → service key `parser_reddit`.
+
+## Notes & limitations
+- HTML comment content is converted via `html_adapter.py`.
+
+## Useful resources
 - [Reddit API OAuth Documentation](https://www.reddit.com/dev/api/oauth/)
 - [Reddit Data API Wiki](https://support.reddithelp.com/hc/en-us/articles/16160319875092-Reddit-Data-API-Wiki)

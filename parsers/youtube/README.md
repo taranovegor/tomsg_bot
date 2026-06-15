@@ -1,2 +1,21 @@
-# YouTube Parser
-This package contains a parser for extracting and formatting comments from the YouTube website. The primary functionality includes fetching comment data for specific topics and presenting it in a structured format with metadata such as the author, content, creation date, and metrics. The parser is implemented as a subclass of a base parser (`core.Parser`).
+# YouTube Comment Parser
+
+Extracts a YouTube comment (author, text, metrics) from a watch link that points to a comment.
+
+## Supported links
+- `https://www.youtube.com/watch?v=<id>&lc=<comment_id>`
+- `https://youtu.be/<id>?lc=<comment_id>`
+
+## Data source
+YouTube Data API v3: `https://youtube.googleapis.com/youtube/v3/comments`.
+
+## Configuration
+| Env               | Purpose                           | Required |
+|-------------------|-----------------------------------|----------|
+| `YOUTUBE_API_KEY` | API key for the YouTube Data API. | yes      |
+
+## Registration
+`@register("youtube")` → service key `parser_youtube`.
+
+## Notes & limitations
+- Timestamps are normalized to UTC.

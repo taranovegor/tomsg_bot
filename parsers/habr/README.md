@@ -1,2 +1,19 @@
 # Habr Comment Parser
-This package contains a parser for extracting and formatting comments from the Habr.com website. The primary functionality includes fetching comment data for specific articles and presenting it in a structured format with metadata such as the author, content, creation date, and metrics. The parser is implemented as a subclass of a base parser (`core.Parser`).
+
+Extracts a comment (author, text) from a Habr article thread.
+
+## Supported links
+- `https://habr.com/<...>/<article_id>...#comment_<comment_id>`
+
+## Data source
+Habr internal API: `https://habr.com/kek/v2/articles/<id>/...`. No authentication.
+
+## Configuration
+Not required.
+
+## Registration
+`@register("habr")` → service key `parser_habr`.
+
+## Notes & limitations
+- Images inside a comment are rendered as links (`html_processor.py`).
+- Timestamps are normalized to UTC.
