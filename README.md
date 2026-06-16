@@ -4,6 +4,7 @@ Easily turn comments and posts into readable Telegram messages.
 ![GitHub License](https://img.shields.io/github/license/taranovegor/tomsg_bot)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/taranovegor/tomsg_bot/publish.yaml)
 [![Docker Image Version](https://img.shields.io/docker/v/taranovegor/tomsg_bot?logo=docker)](https://hub.docker.com/r/taranovegor/tomsg_bot)
+[![GHCR](https://img.shields.io/badge/ghcr.io-tomsg__bot-2496ED?logo=github)](https://github.com/taranovegor/tomsg_bot/pkgs/container/tomsg_bot)
 
 Send the bot a link to a supported social-media post or comment, and it replies with the
 content (text, media, author, metrics) as a native Telegram message. Works in private chats
