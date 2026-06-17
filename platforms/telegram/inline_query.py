@@ -19,6 +19,7 @@ from core.domain.entity import Content, MediaType
 from infra.analytics.analytics import Analytics, Event, Events
 from infra.files.exception import FileTooLargeError
 from infra.files.validator import RemoteFileValidator
+from platforms.telegram.i18n import t
 from platforms.telegram.renderer import MessageRenderer
 from shared.htmls import strip_tags
 from shared.uid import generate_uuid
@@ -36,12 +37,6 @@ class InlineQueryHandler:
 
     Side effects: returns inline results to Telegram; may omit media that exceed limits.
     """
-
-    MEDIA_LABELS = {
-        MediaType.PHOTO.value: "фото",
-        MediaType.VIDEO.value: "видео",
-        MediaType.GIF.value: "GIF",
-    }
 
     def __init__(
         self,
@@ -75,6 +70,7 @@ class InlineQueryHandler:
 
         logging.debug("Received inline query: %s", query)
 
+        locale = update.effective_user.language_code if update.effective_user else None
         events = Events(inline_query.from_user.id, "telegram", "inline")
 
         if not is_valid_url(query):
@@ -84,8 +80,9 @@ class InlineQueryHandler:
             await self._send_error(
                 inline_query,
                 "invalid_url",
-                "❌ Невозможно обработать",
-                "Введенный текст не содержит корректной ссылки для обработки.",
+                t("error_invalid_url_title", locale),
+                t("error_invalid_url_desc", locale),
+                locale,
             )
             await self.analytics.log(events)
             return
@@ -96,7 +93,7 @@ class InlineQueryHandler:
             events.add(Event("page_view").add("page_location", query))
             content = await asyncio.to_thread(self.parser.parse, query)
             logging.debug("Successfully parsed entity for query: %s", query)
-            await self._send_content(inline_query, content)
+            await self._send_content(inline_query, content, locale)
         except ParserNotFoundError as e:
             logging.warning("Parser not found for hostname: %s", hostname)
             events.add(
@@ -108,8 +105,9 @@ class InlineQueryHandler:
             await self._send_error(
                 inline_query,
                 "no_parser_found",
-                "🔗 Ссылка не поддерживается",
-                "К сожалению, ссылка с этого ресурса еще не поддерживается.",
+                t("error_no_parser_title", locale),
+                t("error_no_parser_desc", locale),
+                locale,
             )
         except Exception as e:
             logging.error("Exception while processing query: %s", query, exc_info=True)
@@ -117,13 +115,16 @@ class InlineQueryHandler:
             await self._send_error(
                 inline_query,
                 "exception",
-                "⚠️ Ошибка обработки",
-                "Произошла ошибка при обработке вашего запроса. Повторите попытку позже.",
+                t("error_exception_title", locale),
+                t("error_exception_desc", locale),
+                locale,
             )
         finally:
             await self.analytics.log(events)
 
-    async def _send_content(self, inline_query: InlineQuery, content: Content) -> None:
+    async def _send_content(
+        self, inline_query: InlineQuery, content: Content, locale: str | None = None
+    ) -> None:
         """
         Build and answer inline query results from parsed content.
 
@@ -150,7 +151,9 @@ class InlineQueryHandler:
                 # Fields shared across all inline result types
                 common = {
                     "id": generate_uuid(),
-                    "title": f"➡️ Отправить {self.MEDIA_LABELS[media.type()]}",
+                    "title": t("send_media", locale).replace(
+                        "{type}", t(f"media_label_{media.type().value}", locale)
+                    ),
                     "caption": self.renderer.render_with_link(content),
                     "parse_mode": ParseMode.HTML,
                 }
@@ -188,7 +191,7 @@ class InlineQueryHandler:
                 0,
                 InlineQueryResultArticle(
                     id=generate_uuid(),
-                    title="➡️ Отправить как сообщение",
+                    title=t("send_as_message", locale),
                     description=raw_text,
                     input_message_content=InputTextMessageContent(
                         message_text=self.renderer.render_with_link(content),
@@ -202,7 +205,11 @@ class InlineQueryHandler:
 
     @staticmethod
     async def _send_error(
-        inline_query: InlineQuery, identifier: str, title: str, description: str
+        inline_query: InlineQuery,
+        identifier: str,
+        title: str,
+        description: str,
+        locale: str | None = None,
     ) -> None:
         """
         Reply with a single error Article describing the failure.
@@ -220,9 +227,7 @@ class InlineQueryHandler:
                     description=description,
                     input_message_content=InputTextMessageContent(
                         message_text=(
-                            f"{inline_query.query}\n\n"
-                            "❗️Это сообщение введено пользователем, "
-                            "бот не отвечает за его содержание."
+                            f"{inline_query.query}\n\n{t('disclaimer_user_content', locale)}"
                         ),
                     ),
                 ),
