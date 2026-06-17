@@ -241,7 +241,7 @@ def _make_handler(pipeline, delivery=None):
     )
 
 
-def _make_update(text: str):
+def _make_update(text: str, language_code: str | None = None):
     update = MagicMock()
     msg = MagicMock()
     msg.text = text
@@ -251,6 +251,7 @@ def _make_update(text: str):
     msg.reply_media_group = AsyncMock()
     update.message = msg
     update.effective_chat.type = "private"
+    update.effective_user.language_code = language_code
     return update, msg
 
 
@@ -316,6 +317,54 @@ class TestMessageHandlerHandle:
         assert handler.analytics.log.call_count == 1
         log_call = handler.analytics.log.call_args[0][0]
         assert any(e.name == "page_view" for e in log_call)
+
+    @pytest.mark.asyncio
+    async def test_invalid_url_reply_in_russian_for_ru_locale(self):
+        pipeline = FakeFailingPipeline(InvalidUrlError())
+        handler = _make_handler(pipeline)
+        update, msg = _make_update("not a url", language_code="ru")
+        context = _make_context()
+
+        await handler.handle(update, context)
+
+        reply_text = msg.reply_text.call_args[0][0]
+        assert "не является корректным URL" in reply_text
+
+    @pytest.mark.asyncio
+    async def test_invalid_url_reply_in_english_for_en_locale(self):
+        pipeline = FakeFailingPipeline(InvalidUrlError())
+        handler = _make_handler(pipeline)
+        update, msg = _make_update("not a url", language_code="en")
+        context = _make_context()
+
+        await handler.handle(update, context)
+
+        reply_text = msg.reply_text.call_args[0][0]
+        assert "not a valid URL" in reply_text
+
+    @pytest.mark.asyncio
+    async def test_no_parser_reply_in_russian_for_ru_locale(self):
+        pipeline = FakeFailingPipeline(ParserNotFoundError("no parser"))
+        handler = _make_handler(pipeline)
+        update, msg = _make_update("https://unsupported.example.com", language_code="ru")
+        context = _make_context()
+
+        await handler.handle(update, context)
+
+        reply_text = msg.reply_text.call_args[0][0]
+        assert "не поддерживается" in reply_text
+
+    @pytest.mark.asyncio
+    async def test_no_parser_reply_in_english_for_en_locale(self):
+        pipeline = FakeFailingPipeline(ParserNotFoundError("no parser"))
+        handler = _make_handler(pipeline)
+        update, msg = _make_update("https://unsupported.example.com", language_code="en")
+        context = _make_context()
+
+        await handler.handle(update, context)
+
+        reply_text = msg.reply_text.call_args[0][0]
+        assert "not yet supported" in reply_text
 
     @pytest.mark.asyncio
     async def test_platform_passed_to_events(self):

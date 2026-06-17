@@ -36,6 +36,13 @@ def _make_inline_query(url: str, user_id: int = 7):
     return iq
 
 
+def _make_update_with_query(url: str, language_code: str | None = None, user_id: int = 7):
+    update = MagicMock()
+    update.inline_query = _make_inline_query(url, user_id=user_id)
+    update.effective_user.language_code = language_code
+    return update
+
+
 class TestGifThumbnailFallback:
     @pytest.mark.asyncio
     async def test_gif_without_thumbnail_uses_resource_url(self):
@@ -155,4 +162,173 @@ class TestVideoThumbnailFallback:
 
         results = inline_query.answer.call_args[0][0]
         video_results = [r for r in results if isinstance(r, InlineQueryResultVideo)]
+        assert video_results, "No InlineQueryResultVideo in results"
         assert video_results[0].thumbnail_url == "http://cdn.test/thumb.jpg"
+
+
+class TestInlineQueryLocale:
+    @pytest.mark.asyncio
+    async def test_invalid_url_error_in_russian_for_ru_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("not a url", language_code="ru")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Невозможно обработать" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_invalid_url_error_in_english_for_en_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("not a url", language_code="en")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Cannot process" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_exception_error_in_russian_for_ru_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.parser.parse = MagicMock(side_effect=Exception("generic failure"))
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("https://unsupported.example.com", language_code="ru")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Ошибка обработки" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_exception_error_in_english_for_en_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.parser.parse = MagicMock(side_effect=Exception("generic failure"))
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("https://unsupported.example.com", language_code="en")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Processing error" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_no_parser_error_in_russian_for_ru_locale(self):
+        from core.exceptions import ParserNotFoundError
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.parser.parse = MagicMock(side_effect=ParserNotFoundError("no parser"))
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("https://unsupported.example.com", language_code="ru")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Ссылка не поддерживается" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_no_parser_error_in_english_for_en_locale(self):
+        from core.exceptions import ParserNotFoundError
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.parser.parse = MagicMock(side_effect=ParserNotFoundError("no parser"))
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("https://unsupported.example.com", language_code="en")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        assert len(results) == 1
+        assert "Link not supported" in results[0].title
+
+    @pytest.mark.asyncio
+    async def test_disclaimer_in_russian_for_ru_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("not a url", language_code="ru")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        msg_text = results[0].input_message_content.message_text
+        assert "не отвечает за его содержание" in msg_text
+
+    @pytest.mark.asyncio
+    async def test_disclaimer_in_english_for_en_locale(self):
+        from platforms.telegram.inline_query import InlineQueryHandler
+        from platforms.telegram.renderer import MessageRenderer
+
+        handler = InlineQueryHandler(
+            parser=MagicMock(),
+            renderer=MessageRenderer(),
+            file_validator=MagicMock(),
+            analytics=MagicMock(),
+        )
+        handler.analytics.log = AsyncMock()
+
+        update = _make_update_with_query("not a url", language_code="en")
+        await handler.handle(update, None)
+
+        results = update.inline_query.answer.call_args[0][0]
+        msg_text = results[0].input_message_content.message_text
+        assert "not responsible for its content" in msg_text

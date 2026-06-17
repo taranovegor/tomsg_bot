@@ -19,6 +19,7 @@ from core.pipeline import Pipeline
 from core.ports.delivery import Delivery
 from infra.analytics.analytics import Analytics, Event, Events
 from platforms.telegram import MEDIA_GROUP_CHUNK_SIZE
+from platforms.telegram.i18n import t
 from platforms.telegram.renderer import MessageRenderer
 
 
@@ -198,6 +199,7 @@ class MessageHandler:
         if not text:
             return
 
+        locale = update.effective_user.language_code if update.effective_user else None
         events = Events(message.from_user.id, self.platform, "message")
 
         asyncio.create_task(
@@ -214,7 +216,7 @@ class MessageHandler:
         except InvalidUrlError as e:
             logging.warning("Invalid URL received: %s", text)
             events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
-            await message.reply_text("Введённый текст не является корректным URL.", **kwargs)
+            await message.reply_text(t("invalid_url_reply", locale), **kwargs)
         except ParserNotFoundError as e:
             hostname = urlparse(text).netloc
             logging.warning("Parser not found for hostname: %s", hostname)
@@ -224,13 +226,10 @@ class MessageHandler:
                 .add("type", type(e).__name__)
                 .add("hostname", hostname)
             )
-            await message.reply_text("Ссылка с этого ресурса ещё не поддерживается.", **kwargs)
+            await message.reply_text(t("no_parser_reply", locale), **kwargs)
         except Exception as e:
             logging.error("Exception while processing text: %s", text, exc_info=True)
             events.add(Event("exception").add("description", str(e)).add("type", type(e).__name__))
-            await message.reply_text(
-                "Произошла ошибка при обработке вашего запроса. Повторите позже.",
-                **kwargs,
-            )
+            await message.reply_text(t("exception_reply", locale), **kwargs)
 
         await self.analytics.log(events)
