@@ -22,7 +22,6 @@ class Entity(ABC):
     @staticmethod
     @abstractmethod
     def type() -> MediaType:
-        """Returns the type of the entity."""
         pass
 
 
@@ -44,7 +43,6 @@ class Photo(Entity):
 
     @staticmethod
     def type() -> MediaType:
-        """Returns the type of the entity as 'photo'."""
         return MediaType.PHOTO
 
 
@@ -58,7 +56,6 @@ class Video(Entity):
 
     @staticmethod
     def type() -> MediaType:
-        """Returns the type of the entity as 'video'."""
         return MediaType.VIDEO
 
 
@@ -72,7 +69,6 @@ class GIF(Entity):
 
     @staticmethod
     def type() -> MediaType:
-        """Returns the type of the entity as 'gif'."""
         return MediaType.GIF
 
 
@@ -89,7 +85,6 @@ class Content(Entity):
 
     @staticmethod
     def type() -> MediaType:
-        """Returns the type of the entity as 'content'."""
         return MediaType.CONTENT
 
 

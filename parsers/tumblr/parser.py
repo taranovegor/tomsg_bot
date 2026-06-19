@@ -33,17 +33,14 @@ class Parser(BaseParser):
     MIME_MP4 = "video/mp4"
 
     def __init__(self, api_key: str, user_agent: str, timeout: int = 30):
-        """Initializes the parser with Tumblr API key and user agent."""
         self.api_key = api_key
         self.user_agent = user_agent
         self.timeout = timeout
 
     def supports(self, url: str) -> bool:
-        """Checks if the URL is supported by this parser."""
         return bool(self.URL_REGEX.match(url))
 
     def parse(self, url: str) -> Entity:
-        """Parses the provided Tumblr URL and returns an Entity representing the post."""
         match = self.URL_REGEX.search(url)
         if not match:
             raise InvalidUrlError()
@@ -91,19 +88,16 @@ class Parser(BaseParser):
 
     @staticmethod
     def _extract_content(post: dict) -> str:
-        """Extracts text content from post body."""
         body = post.get("body", "")
         content = Parser.HTML_TAGS_PATTERN.sub("", body)
         return content.strip()
 
     @staticmethod
     def _parse_date(date_str: str) -> datetime:
-        """Parses Tumblr date format to datetime with UTC timezone."""
         cleaned = date_str.replace(" GMT", "").strip()
         return datetime.strptime(cleaned, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
 
     def _extract_media(self, post: dict) -> list:
-        """Extracts media from post photos, videos, or HTML body."""
         media = []
 
         if post.get("photos"):
@@ -127,7 +121,6 @@ class Parser(BaseParser):
         return media
 
     def _extract_photos_from_field(self, photos: list) -> list:
-        """Extracts Photo/GIF objects from photos field."""
         media = []
         for photo in photos:
             original_size = photo.get("original_size", {})
@@ -137,7 +130,6 @@ class Parser(BaseParser):
         return media
 
     def _extract_videos_from_html(self, html: str) -> list:
-        """Extracts Video objects from HTML <source> tags."""
         media = []
         video_matches = self.VIDEO_SOURCE_PATTERN.findall(html)
         if not video_matches:
@@ -158,7 +150,6 @@ class Parser(BaseParser):
         return media
 
     def _extract_images_from_html(self, html: str) -> list:
-        """Extracts Photo/GIF objects from HTML <img> tags."""
         media = []
         img_urls = self.IMG_PATTERN.findall(html)
 
@@ -170,7 +161,6 @@ class Parser(BaseParser):
         return media
 
     def _create_media_object(self, resource_url: str, thumbnail_url: str) -> Photo | Video:
-        """Creates appropriate media object (Photo, GIF, or Video) based on URL."""
         if resource_url.lower().endswith(".gif"):
             return Video(
                 resource_url=resource_url,
@@ -182,7 +172,6 @@ class Parser(BaseParser):
 
     @staticmethod
     def format_counter(number: int) -> str:
-        """Formats a number into a human-readable counter (e.g., 1K, 1M)."""
         if number >= 1_000_000:
             return f"{number / 1_000_000:.0f}M"
         if number >= 1_000:

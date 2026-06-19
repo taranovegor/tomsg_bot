@@ -12,12 +12,10 @@ class Instance:
         self.container = container
 
     def run(self):
-        """Runs the application instance."""
         self.container.get("app")
 
 
 def init():
-    """Loads configuration, initializes, and returns an Instance."""
     config = load_config()
 
     logging.basicConfig(

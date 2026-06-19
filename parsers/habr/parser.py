@@ -22,16 +22,13 @@ class Parser(BaseParser):
     URL_REGEX = re.compile(r"^https?://habr\.com/.*/(\d+).*#comment_(\d+)$")
 
     def __init__(self, user_agent: str, timeout: int = 30):
-        """Initialize parser with a custom User-Agent."""
         self.user_agent = user_agent
         self.timeout = timeout
 
     def supports(self, url: str) -> bool:
-        """Check if the given URL matches the expected pattern."""
         return bool(self.URL_REGEX.match(url))
 
     def parse(self, url: str) -> Content:
-        """Extract comment data from a given Habr article URL."""
         match = self.URL_REGEX.search(url)
         if not match:
             raise InvalidUrlError()
@@ -67,7 +64,6 @@ class Parser(BaseParser):
         )
 
     def _fetch(self, url: str) -> dict:
-        """Perform an HTTP GET request and return the JSON response."""
         response = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         if response.status_code == 200:
             return response.json()

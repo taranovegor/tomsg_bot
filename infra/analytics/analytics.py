@@ -7,12 +7,10 @@ class Event:
     """Represents an individual event with a name and properties."""
 
     def __init__(self, name: str):
-        """Initializes the event with a name."""
         self.name = name
         self._data: dict[str, Any] = {}
 
     def get_name(self) -> str:
-        """Returns the name of the event."""
         return self.name
 
     def add(self, prop: str, value: Any) -> Self:
@@ -43,7 +41,6 @@ class Events(list[Event]):
     """Represents a collection of events associated with a user."""
 
     def __init__(self, user_id: int, platform: str, handler_type: str):
-        """Initializes the events collection with a user ID and timestamp."""
         super().__init__()
         self.user_id = user_id
         self.platform = platform
@@ -51,7 +48,6 @@ class Events(list[Event]):
         self.created_at = self.__now_in_ms()
 
     def get_user_id(self) -> int:
-        """Returns the user ID associated with the events."""
         return self.user_id
 
     def add(self, e: Event) -> Self:
@@ -64,7 +60,6 @@ class Events(list[Event]):
 
     @staticmethod
     def __now_in_ms() -> int:
-        """Returns the current time in milliseconds."""
         return round(time.time() * 1000)
 
 
@@ -73,5 +68,4 @@ class Analytics(ABC):
 
     @abstractmethod
     async def log(self, events: Events) -> None:
-        """Logs a collection of events as"""
         pass

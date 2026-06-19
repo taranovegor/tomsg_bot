@@ -24,17 +24,14 @@ class Parser(BaseParser):
     )
 
     def __init__(self, api_key: str, user_agent: str, timeout: int = 30):
-        """Initialize parser with API key and user agent."""
         self.api_key = api_key
         self.user_agent = user_agent
         self.timeout = timeout
 
     def supports(self, url: str) -> bool:
-        """Check if the given URL matches YouTube comment format."""
         return bool(self.URL_REGEX.match(url))
 
     def parse(self, url: str) -> Content:
-        """Extract comment details from YouTube using API."""
         if not self.supports(url):
             raise InvalidUrlError()
 

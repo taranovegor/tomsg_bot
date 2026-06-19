@@ -35,12 +35,10 @@ class Container:
     """A class representing a container for managing services and their initialization."""
 
     def __init__(self, config: Config):
-        """Initializes the container with a given configuration."""
         self.config = config
         self.__services = {}
 
     def get(self, name):
-        """Fetches a service by its name and initializes it if not already initialized."""
         logging.debug("Fetching service: %s", name)
         service = self.__services.get(name)
         if not service:
@@ -57,7 +55,6 @@ class Container:
         return service.instance
 
     def register(self, name, initializer):
-        """Registers a service by name with its initializer."""
         if name in self.__services:
             logging.warning("Service %s is already registered. Overwriting.", name)
         logging.debug("Registering service: %s", name)
@@ -68,13 +65,11 @@ class Service:
     """A class that represents a service with an initializer and instance."""
 
     def __init__(self, initializer):
-        """Initializes the service with the given initializer."""
         self.initializer = initializer
         self.initialized = False
         self.instance = None
 
     def initialize(self, container: Container):
-        """Initializes the service and sets its instance."""
         logging.debug("Initializing service instance")
         self.instance = self.initializer(container)
         self.initialized = True
@@ -82,14 +77,12 @@ class Service:
 
 
 def _tempdir(_: Container) -> tempfile.TemporaryDirectory:
-    """Creates and returns a temporary directory path."""
     tempdir = tempfile.TemporaryDirectory()
     logging.info("Created temporary directory at %s", tempdir.name)
     return tempdir
 
 
 def _analytics(container: Container) -> Analytics:
-    """Initializes and returns a GoogleAnalytics instance."""
     config = container.config.google_analytics
     return GoogleAnalytics(
         config.measurement_id,
@@ -144,7 +137,6 @@ def _media_video_processor(container: Container) -> VideoProcessor:
 
 
 def _parser_delegating(container: Container) -> Parser:
-    """Initializes and returns a DelegatingParser with all registered parsers."""
     import parsers
 
     factories = parsers.registry.get_factories()
