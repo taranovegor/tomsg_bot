@@ -9,11 +9,7 @@ class LocalStorage:
         self.root = root
 
     def get_path(self, relative_name: str) -> Path:
-        """
-        Return Path for relative_name under root and ensure parent exists.
-
-        Side-effect: creates parent directories if missing.
-        """
+        """Creates parent directories if missing."""
         path = self.root / relative_name
         path.parent.mkdir(parents=True, exist_ok=True)
         logging.debug("Resolved path in local storage: %s", path)

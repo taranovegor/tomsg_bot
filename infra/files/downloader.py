@@ -22,8 +22,7 @@ class MediaDownloader:
         self.max_bytes = max_bytes
 
     async def download(self, url: str, dest_path: str) -> int:
-        """Stream-download URL to dest_path and return total bytes written.
-
+        """
         - Streams in CHUNK_SIZE increments.
         - Raises FileTooLargeError when max_bytes is set and exceeded (checked
           per-chunk, so a lying or absent Content-Length does not bypass it).
@@ -61,8 +60,7 @@ class MediaDownloader:
 
     @staticmethod
     def safe_filename(url: str, max_len: int = 200) -> str:
-        """Return a filesystem-safe filename derived from URL.
-
+        """
         - Uses URL basename when reasonable, sanitizes unsafe chars.
         - Falls back to a generated name with uuid when needed.
         - Ensures the result length does not exceed max_len.

@@ -28,7 +28,6 @@ def register(name: str):
 
 
 def get_factories() -> dict[str, Callable[[Any], object]]:
-    """Return all registered parser factories (copy to prevent mutation)."""
     return dict(_parser_factories)
 
 

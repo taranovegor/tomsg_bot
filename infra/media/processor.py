@@ -16,9 +16,6 @@ class VideoProcessor(VideoProcessorPort):
         self.storage = storage
 
     async def process_video(self, video_path: Path) -> VideoMeta:
-        """
-        Probe dimensions and duration of a video file, return VideoMeta.
-        """
         dim_task = asyncio.create_task(self.probe_dimensions(video_path))
         dur_task = asyncio.create_task(self.probe_duration(video_path))
 
@@ -34,8 +31,6 @@ class VideoProcessor(VideoProcessorPort):
     @staticmethod
     async def probe_duration(filepath: Path) -> int | None:
         """
-        Return total duration in seconds (int) or None.
-
         Prefers per-video-stream duration; falls back to format-level duration.
         Rounds to nearest second.
         """
@@ -63,7 +58,6 @@ class VideoProcessor(VideoProcessorPort):
 
     @staticmethod
     async def probe_dimensions(filepath: Path) -> tuple[int | None, int | None]:
-        """Return (width, height) from a video stream, or (None, None) if unavailable."""
         try:
             probe = await asyncio.to_thread(ffmpeg.probe, filepath)
             streams = probe.get("streams", [])

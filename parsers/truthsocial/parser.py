@@ -26,16 +26,13 @@ class Parser(BaseParser):
     )
 
     def __init__(self, user_agent: str, timeout: int = 30):
-        """Initializes the parser with a user agent for making requests."""
         self.user_agent = user_agent
         self.timeout = timeout
 
     def supports(self, url: str) -> bool:
-        """Checks if the URL is supported by this parser."""
         return bool(self.URL_REGEX.match(url))
 
     def parse(self, url: str) -> Entity:
-        """Parses the provided Truth Social URL and returns an Entity representing the status."""
         match = self.URL_REGEX.search(url)
         if not match:
             raise InvalidUrlError()
@@ -103,7 +100,6 @@ class Parser(BaseParser):
 
     @staticmethod
     def format_counter(number):
-        """Formats a number into a human-readable counter (e.g., 1K, 1M)."""
         if number >= 1_000_000:
             return f"{number / 1_000_000:.0f}M"
         if number >= 1_000:
