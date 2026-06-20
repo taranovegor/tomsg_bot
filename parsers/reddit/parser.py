@@ -94,15 +94,12 @@ class Parser(BaseParser):
         return token_data["access_token"]
 
     def fetch_reddit_comment(self, comment_id: str, access_token: str) -> dict[str, Any]:
-        api_url = f"https://www.reddit.com/api/info.json?id=t1_{comment_id}"
-        headers = {"Authorization": f"{access_token}", "User-Agent": self.user_agent}
+        api_url = f"https://oauth.reddit.com/api/info.json?id=t1_{comment_id}"
+        headers = {"Authorization": f"Bearer {access_token}", "User-Agent": self.user_agent}
 
         response = requests.get(
             api_url,
             headers=headers,
-            cookies={
-                "reddit_session": access_token,
-            },
             timeout=self.timeout,
         )
         if response.status_code != 200:
