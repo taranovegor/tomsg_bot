@@ -1,4 +1,5 @@
 import re
+import threading
 from datetime import UTC, datetime
 from html import unescape
 from typing import Any
@@ -33,6 +34,7 @@ class Parser(BaseParser):
         self.user_agent = user_agent
         self.timeout = timeout
         self.cache = {}
+        self._lock = threading.Lock()
 
     def supports(self, url: str) -> bool:
         return any(
@@ -67,31 +69,34 @@ class Parser(BaseParser):
         return self.parse_reddit_comment(data)
 
     def get_auth_token(self) -> str:
-        if (
-            "access_token" in self.cache
-            and self.cache["access_token"]["expires_at"] > datetime.now().timestamp()
-        ):
-            return self.cache["access_token"]["token"]
+        cached = self.cache.get("access_token")
+        if cached and cached["expires_at"] > datetime.now().timestamp():
+            return cached["token"]
 
-        auth_url = "https://www.reddit.com/api/v1/access_token"
-        data = {"grant_type": "client_credentials"}
-        auth = (self.client_id, self.client_secret)
-        headers = {"User-Agent": self.user_agent}
+        with self._lock:
+            cached = self.cache.get("access_token")
+            if cached and cached["expires_at"] > datetime.now().timestamp():
+                return cached["token"]
 
-        response = requests.post(
-            auth_url, data=data, auth=auth, headers=headers, timeout=self.timeout
-        )
-        if response.status_code != 200:
-            raise Exception(f"Failed to get auth token: {response.status_code} {response.text}")
+            auth_url = "https://www.reddit.com/api/v1/access_token"
+            data = {"grant_type": "client_credentials"}
+            auth = (self.client_id, self.client_secret)
+            headers = {"User-Agent": self.user_agent}
 
-        token_data = response.json()
+            response = requests.post(
+                auth_url, data=data, auth=auth, headers=headers, timeout=self.timeout
+            )
+            if response.status_code != 200:
+                raise Exception(f"Failed to get auth token: {response.status_code} {response.text}")
 
-        self.cache["access_token"] = {
-            "token": token_data["access_token"],
-            "expires_at": datetime.now().timestamp() + token_data["expires_in"] - 30,
-        }
+            token_data = response.json()
 
-        return token_data["access_token"]
+            self.cache["access_token"] = {
+                "token": token_data["access_token"],
+                "expires_at": datetime.now().timestamp() + token_data["expires_in"] - 30,
+            }
+
+            return token_data["access_token"]
 
     def fetch_reddit_comment(self, comment_id: str, access_token: str) -> dict[str, Any]:
         api_url = f"https://oauth.reddit.com/api/info.json?id=t1_{comment_id}"
