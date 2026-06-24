@@ -244,3 +244,47 @@ def test_render_with_link_full_content(renderer):
     assert "Hello world" in result
     assert "💬 5  🔁 2  ❤️ 42" in result
     assert '<a href="https://x.com/user/status/1">Original post</a>' in result
+
+
+# Truncation
+
+
+def test_render_truncates_long_text(renderer):
+    content = Content(
+        backlink=Link("https://x.com/u/1", "s"),
+        text="hello " + "x" * 500,
+    )
+    result = renderer.render_with_link(content, max_length=50)
+    assert len(result) <= 80  # raw length + closing tags + "..." is within reason
+    assert result.endswith("</a>")
+
+
+def test_render_truncates_by_raw_length(renderer):
+    content = Content(
+        backlink=Link("https://x.com/u/1"),
+        text="<b>" + "x" * 500 + "</b>",
+    )
+    result = renderer.render_with_link(content, max_length=50)
+    visible_text = result.split("<b>")[-1].split("</b>")[0] if "<b>" in result else ""
+    assert len(visible_text) < 50  # visible chars are cut, not just raw
+    assert "<b>" in result
+    assert "</b>" in result
+
+
+def test_render_truncates_preserves_tag_integrity(renderer):
+    content = Content(
+        backlink=Link("https://x.com/u/1"),
+        text="<b>important</b> " + "x" * 500,
+    )
+    result = renderer.render_with_link(content, max_length=50)
+    assert result.count("<b>") == result.count("</b>")  # all tags closed
+
+
+def test_render_max_length_noop_when_under_limit(renderer):
+    content = Content(
+        backlink=Link("https://x.com/u/1"),
+        text="short text",
+    )
+    result = renderer.render_with_link(content, max_length=1024)
+    assert "short text" in result
+    assert not result.endswith("...")
