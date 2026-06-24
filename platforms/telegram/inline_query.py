@@ -154,7 +154,7 @@ class InlineQueryHandler:
                     "title": t("send_media", locale).replace(
                         "{type}", t(f"media_label_{media.type().value}", locale)
                     ),
-                    "caption": self.renderer.render_with_link(content),
+                    "caption": self.renderer.render_with_link(content, max_length=1024),
                     "parse_mode": ParseMode.HTML,
                 }
 

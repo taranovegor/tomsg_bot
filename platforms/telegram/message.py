@@ -45,6 +45,7 @@ class TelegramDelivery(Delivery):
     async def send(self, target, result: PipelineResult) -> None:
         kwargs = {"parse_mode": ParseMode.HTML, "do_quote": True}
         text = self.renderer.render_with_link(result.content)
+        media_caption = self.renderer.render_with_link(result.content, max_length=1024)
 
         if not result.resolved_media:
             await target.reply_text(text, disable_web_page_preview=True, **kwargs)
@@ -92,7 +93,7 @@ class TelegramDelivery(Delivery):
                 try:
                     await target.reply_media_group(
                         chunk,
-                        caption=text if use_caption else None,
+                        caption=media_caption if use_caption else None,
                         **kwargs,
                     )
                     if use_caption:
@@ -106,7 +107,7 @@ class TelegramDelivery(Delivery):
                 try:
                     await target.reply_animation(
                         gif_input.media,
-                        caption=text if use_caption else None,
+                        caption=media_caption if use_caption else None,
                         **kwargs,
                     )
                     if use_caption:
