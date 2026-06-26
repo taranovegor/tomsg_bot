@@ -1,5 +1,6 @@
 # tomsg_bot
-Easily turn comments and posts into readable Telegram messages.
+
+Turn social-media links into readable messages — on Telegram **and** Discord.
 
 ![GitHub License](https://img.shields.io/github/license/taranovegor/tomsg_bot)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/taranovegor/tomsg_bot/publish.yaml)
@@ -7,8 +8,12 @@ Easily turn comments and posts into readable Telegram messages.
 [![GHCR](https://img.shields.io/badge/ghcr.io-tomsg__bot-2496ED?logo=github)](https://github.com/taranovegor/tomsg_bot/pkgs/container/tomsg_bot)
 
 Send the bot a link to a supported social-media post or comment, and it replies with the
-content (text, media, author, metrics) as a native Telegram message. Works in private chats
-and via inline queries.
+content (text, media, author, metrics). At least one front-end token is required; you can run
+Telegram only, Discord only, or both.
+
+- **Telegram**: private chat links or `@bot <url>` inline queries.
+- **Discord**: `/tomsg <url>` slash command or auto-detection of link-only messages (requires
+  [Message Content Intent](https://discord.com/developers/applications)).
 
 ## Supported platforms
 Twitter / X, Instagram, Reddit, YouTube (comments), TikTok, VK, Tumblr, Truth Social,
@@ -46,8 +51,9 @@ make start
 |---------------------------------|----------------------------------------------------------------------------------------------------|
 | `DEBUG`                         | Indicates whether the application is running in debug mode (`true/false`).                         |
 | `LOG_LEVEL`                     | Logging level. One of: `CRITICAL`, `FATAL`, `ERROR`, `WARN`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`. |
-| `TELEGRAM_BOT_TOKEN`            | Telegram bot token required for the bot to operate.                                                |
+| `TELEGRAM_BOT_TOKEN`            | Telegram bot token. Required for the Telegram front-end.                                           |
 | `TELEGRAM_BASE_URL`             | Optional custom Telegram API base URL. Use this if you run a self-hosted Telegram API or a proxy.  |
+| `DISCORD_BOT_TOKEN`             | Discord bot token. Required for the Discord front-end.                                             |
 | `INSTAGRAM_VIDEO_PARSER_URL`    | Instagram video parser address.                                                                    |
 | `INSTAGRAM_ENCRYPTION_KEY`      | Encryption key used to pass URLs to the Instagram parser.                                          |
 | `REDDIT_CLIENT_ID`              | Reddit API client ID used for API authentication.                                                  |
@@ -79,14 +85,14 @@ ruff format --check .
 ```
 
 ### Project layout
-| Directory    | Responsibility                                                          |
-|--------------|-------------------------------------------------------------------------|
-| `bootstrap/` | Composition root: config, DI container, entrypoint.                     |
-| `core/`      | Domain model, contracts (`ports/`) and the neutral `pipeline/`.         |
-| `parsers/`   | Source adapters — one package per platform, registered via `@register`. |
-| `platforms/` | Delivery front-ends (Telegram).                                         |
-| `infra/`     | Infrastructure: file download, media processing, analytics.             |
-| `shared/`    | Cross-cutting helpers (HTML, URL, ids).                                 |
+| Directory    | Responsibility                                                                                     |
+|--------------|----------------------------------------------------------------------------------------------------|
+| `bootstrap/` | Composition root: config, DI container, entrypoint.                                                |
+| `core/`      | Domain model, contracts (`ports/`) and the neutral `pipeline/`.                                    |
+| `parsers/`   | Source adapters — one package per platform, registered via `@register`.                            |
+| `platforms/` | Delivery front-ends — `telegram/` (HTML + inline query) and `discord/` (Markdown + slash command). |
+| `infra/`     | Infrastructure: file download, media processing, analytics.                                        |
+| `shared/`    | Cross-cutting helpers (HTML, URL, ids).                                                            |
 
 ## Contributing
 Contributions are welcome. Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the
