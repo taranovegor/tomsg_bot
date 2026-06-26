@@ -4,7 +4,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from telegram.ext import Application, InlineQueryHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, InlineQueryHandler, MessageHandler, filters
 
 from bootstrap import keys
 from core.config import Config
@@ -148,7 +148,7 @@ def _parser_delegating(container: Container) -> Parser:
 def _app(container: Container) -> None:
     """Initializes and runs the Telegram bot application."""
     logging.info("Initializing Telegram bot application")
-    builder = Application.builder()
+    builder = ApplicationBuilder()
     builder.token(container.config.telegram.bot_token)
     if container.config.telegram.base_url:
         logging.info(f"Using custom Telegram API base URL: {container.config.telegram.base_url}")
