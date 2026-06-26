@@ -135,7 +135,7 @@ jobs:
               working-directory: ${{ runner.temp }}/digests
               run: |
                   docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-                    $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+                    $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
 
             - name: Inspect images
               run: |
