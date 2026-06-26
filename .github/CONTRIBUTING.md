@@ -18,8 +18,8 @@ ruff format --check .
 ```
 
 ## Adding a new parser
-Parsers are self-contained packages in [`parsers/`](../parsers/) and are discovered
-automatically — no edits to `core/` or `bootstrap/` are needed.
+Parsers are self-contained packages in [`parsers/`](../parsers/); registering one needs no
+edits to `core/` or `bootstrap/`.
 
 1. Create `parsers/<platform>/` with a `parser.py` implementing the `Parser` contract
    (`supports()` + `parse()`).
@@ -31,10 +31,16 @@ automatically — no edits to `core/` or `bootstrap/` are needed.
    def create_parser(container):
        return Parser(...)
    ```
-3. Add a test (a routing case + a `parse()` test on a saved fixture, HTTP mocked).
-4. Add a `README.md` to the package following the format below.
+3. Wire the package into [`parsers/__init__.py`](../parsers/__init__.py): add it to both the
+   `from . import (...)` block and `__all__`. This runs the `@register` decorator and lets the
+   PyInstaller build bundle it (the package isn't discovered dynamically). The guard test
+   `tests/parsers/test_registry.py` fails if you forget the import; `ruff` fails if you forget
+   `__all__`.
+4. Add a test (a routing case + a `parse()` test on a saved fixture, HTTP mocked).
+5. Add a `README.md` to the package following the format below.
 
-A parser is considered done when it has all of: `@register`, a test, and a `README.md`.
+A parser is considered done when it has all of: `@register`, an import in `parsers/__init__.py`,
+a test, and a `README.md`.
 
 ### Parser README format
 Each parser package must ship a `README.md` with the same sections, filled in from the code

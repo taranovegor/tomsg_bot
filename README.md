@@ -79,14 +79,14 @@ ruff format --check .
 ```
 
 ### Project layout
-| Directory    | Responsibility                                                  |
-|--------------|-----------------------------------------------------------------|
-| `bootstrap/` | Composition root: config, DI container, entrypoint.             |
-| `core/`      | Domain model, contracts (`ports/`) and the neutral `pipeline/`. |
-| `parsers/`   | Source adapters — one auto-registered package per platform.     |
-| `platforms/` | Delivery front-ends (Telegram).                                 |
-| `infra/`     | Infrastructure: file download, media processing, analytics.     |
-| `shared/`    | Cross-cutting helpers (HTML, URL, ids).                         |
+| Directory    | Responsibility                                                          |
+|--------------|-------------------------------------------------------------------------|
+| `bootstrap/` | Composition root: config, DI container, entrypoint.                     |
+| `core/`      | Domain model, contracts (`ports/`) and the neutral `pipeline/`.         |
+| `parsers/`   | Source adapters — one package per platform, registered via `@register`. |
+| `platforms/` | Delivery front-ends (Telegram).                                         |
+| `infra/`     | Infrastructure: file download, media processing, analytics.             |
+| `shared/`    | Cross-cutting helpers (HTML, URL, ids).                                 |
 
 ## Contributing
 Contributions are welcome. Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the

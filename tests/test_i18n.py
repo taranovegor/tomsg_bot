@@ -1,4 +1,10 @@
-from platforms.telegram.i18n import DEFAULT_LOCALE, normalize_locale, t
+from platforms.telegram.i18n import (
+    _CATALOGS,
+    DEFAULT_LOCALE,
+    SUPPORTED_LOCALES,
+    normalize_locale,
+    t,
+)
 
 
 class TestNormalizeLocale:
@@ -54,3 +60,20 @@ class TestTFunction:
 
     def test_region_code_uses_base_locale(self):
         assert t("invalid_url_reply", "en-US") == "The entered text is not a valid URL."
+
+
+class TestCatalogIntegrity:
+    def test_every_supported_locale_loads_non_empty(self):
+        """Every supported locale must have a non-empty catalog."""
+        for locale in SUPPORTED_LOCALES:
+            assert _CATALOGS[locale], f"catalog for {locale!r} is empty"
+
+    def test_all_locales_define_the_same_keys(self):
+        """Every locale must cover the same keys, so no fallback/missing-key at runtime."""
+        catalogs = {loc: set(_CATALOGS[loc]) for loc in SUPPORTED_LOCALES}
+        reference = catalogs[DEFAULT_LOCALE]
+        for locale, keys in catalogs.items():
+            assert keys == reference, (
+                f"{locale!r} key set differs from {DEFAULT_LOCALE!r}: "
+                f"missing {reference - keys}, extra {keys - reference}"
+            )
