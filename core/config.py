@@ -66,6 +66,13 @@ class TumblrConfig:
         self.api_key = os.getenv("TUMBLR_API_KEY")
 
 
+class DiscordConfig:
+    _required = ()
+
+    def __init__(self):
+        self.bot_token = os.getenv("DISCORD_BOT_TOKEN")
+
+
 class Config:
     """Holds the entire configuration for all services."""
 
@@ -75,6 +82,7 @@ class Config:
         self.log_level = logging.getLevelName(os.getenv("LOG_LEVEL", "INFO"))
         self.parser_http_timeout = int(os.getenv("PARSER_HTTP_TIMEOUT", "30"))
         self.telegram = TelegramConfig()
+        self.discord = DiscordConfig()
         self.instagram = InstagramConfig()
         self.reddit = RedditConfig()
         self.google_analytics = GoogleAnalyticsConfig()

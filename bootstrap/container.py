@@ -17,6 +17,10 @@ from infra.files.resolver import FileResolver
 from infra.files.storage import LocalStorage
 from infra.files.validator import RemoteFileValidator
 from infra.media.processor import VideoProcessor
+from platforms.discord.bot import DiscordBot
+from platforms.discord.delivery import DiscordDelivery
+from platforms.discord.handler import DiscordMessageHandler
+from platforms.discord.renderer import DiscordRenderer
 from platforms.telegram import DOWNLOAD_FILE_SIZE_LIMIT, INLINE_FILE_SIZE_LIMIT
 from platforms.telegram.inline_query import (
     InlineQueryHandler as TelegaInlineQueryHandler,
@@ -145,29 +149,81 @@ def _parser_delegating(container: Container) -> Parser:
     )
 
 
+def _discord_renderer(_: Container) -> DiscordRenderer:
+    """Shared DiscordRenderer instance."""
+    return DiscordRenderer()
+
+
+def _discord_delivery(container: Container) -> DiscordDelivery:
+    """Discord-specific delivery using shared renderer."""
+    return DiscordDelivery(container.get(keys.DISCORD_RENDERER))
+
+
+def _discord_handler(container: Container) -> DiscordMessageHandler:
+    """DiscordMessageHandler constructed from container services."""
+    return DiscordMessageHandler(
+        container.get(keys.PIPELINE),
+        container.get(keys.DISCORD_DELIVERY),
+        container.get(keys.ANALYTICS),
+    )
+
+
+def _discord_bot(container: Container) -> DiscordBot:
+    """Discord bot transport."""
+    return DiscordBot(
+        container.config.discord.bot_token,
+        container.get(keys.DISCORD_HANDLER),
+    )
+
+
 def _app(container: Container) -> None:
-    """Initializes and runs the Telegram bot application."""
-    logging.info("Initializing Telegram bot application")
-    builder = ApplicationBuilder()
-    builder.token(container.config.telegram.bot_token)
-    if container.config.telegram.base_url:
-        logging.info(f"Using custom Telegram API base URL: {container.config.telegram.base_url}")
-        builder.base_url(container.config.telegram.base_url)
-    application = builder.build()
+    """Runs Telegram and/or Discord frontends — at least one token required."""
+    import threading
 
-    application.add_handler(
-        InlineQueryHandler(container.get(keys.TELEGA_INLINE_QUERY_HANDLER).handle)
-    )
-    application.add_handler(
-        MessageHandler(
-            filters.TEXT & filters.ChatType.PRIVATE,
-            container.get(keys.TELEGA_MESSAGE_HANDLER).handle,
+    tg_token = container.config.telegram.bot_token
+    dc_token = container.config.discord.bot_token
+
+    if not tg_token and not dc_token:
+        raise RuntimeError(
+            "Neither TELEGRAM_BOT_TOKEN nor DISCORD_BOT_TOKEN is set. "
+            "Configure at least one platform token to start the bot."
         )
-    )
 
-    logging.info("Starting Telegram bot polling")
+    dc_thread: threading.Thread | None = None
 
-    return application.run_polling()
+    if dc_token:
+        logging.info("Starting Discord bot in background thread")
+        discord_bot = container.get(keys.DISCORD_BOT)
+        dc_thread = threading.Thread(target=discord_bot.run, daemon=True)
+        dc_thread.start()
+
+    if tg_token:
+        logging.info("Initializing Telegram bot application")
+        builder = ApplicationBuilder()
+        builder.token(tg_token)
+        if container.config.telegram.base_url:
+            logging.info(
+                f"Using custom Telegram API base URL: {container.config.telegram.base_url}"
+            )
+            builder.base_url(container.config.telegram.base_url)
+        application = builder.build()
+
+        application.add_handler(
+            InlineQueryHandler(container.get(keys.TELEGA_INLINE_QUERY_HANDLER).handle)
+        )
+        application.add_handler(
+            MessageHandler(
+                filters.TEXT & filters.ChatType.PRIVATE,
+                container.get(keys.TELEGA_MESSAGE_HANDLER).handle,
+            )
+        )
+
+        logging.info("Starting Telegram bot polling")
+        return application.run_polling()
+
+    if dc_thread is not None:
+        logging.info("Discord bot is the only active frontend — joining its thread")
+        dc_thread.join()
 
 
 def _telega_inline_query_handler(
@@ -236,6 +292,12 @@ def load_container(config):
     container.register(keys.TELEGA_DELIVERY, _telega_delivery)
     container.register(keys.TELEGA_MESSAGE_HANDLER, _telega_message_handler)
     container.register(keys.TELEGA_MESSAGE_RENDERER, _telega_message_renderer)
+
+    container.register(keys.DISCORD_RENDERER, _discord_renderer)
+    container.register(keys.DISCORD_DELIVERY, _discord_delivery)
+    container.register(keys.DISCORD_HANDLER, _discord_handler)
+    container.register(keys.DISCORD_BOT, _discord_bot)
+
     container.register(keys.APP, _app)
 
     logging.info("Container loaded successfully")

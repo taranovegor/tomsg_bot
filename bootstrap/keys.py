@@ -27,5 +27,11 @@ TELEGA_DELIVERY = "telega_delivery"
 TELEGA_MESSAGE_HANDLER = "telega_message_handler"
 TELEGA_MESSAGE_RENDERER = "telega_message_renderer"
 
+# Discord
+DISCORD_RENDERER = "discord_renderer"
+DISCORD_DELIVERY = "discord_delivery"
+DISCORD_HANDLER = "discord_handler"
+DISCORD_BOT = "discord_bot"
+
 # App
 APP = "app"
