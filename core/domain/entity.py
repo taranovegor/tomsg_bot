@@ -52,7 +52,7 @@ class Video(Entity):
 
     resource_url: str
     mime_type: str
-    thumbnail_url: str
+    thumbnail_url: str | None = None
 
     @staticmethod
     def type() -> MediaType:
@@ -65,7 +65,7 @@ class GIF(Entity):
 
     resource_url: str
     mime_type: str
-    thumbnail_url: str
+    thumbnail_url: str | None = None
 
     @staticmethod
     def type() -> MediaType:

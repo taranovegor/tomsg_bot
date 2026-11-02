@@ -48,8 +48,7 @@ make start
 | `LOG_LEVEL`                     | Logging level. One of: `CRITICAL`, `FATAL`, `ERROR`, `WARN`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`. |
 | `TELEGRAM_BOT_TOKEN`            | Telegram bot token required for the bot to operate.                                                |
 | `TELEGRAM_BASE_URL`             | Optional custom Telegram API base URL. Use this if you run a self-hosted Telegram API or a proxy.  |
-| `INSTAGRAM_VIDEO_PARSER_URL`    | Instagram video parser address.                                                                    |
-| `INSTAGRAM_ENCRYPTION_KEY`      | Encryption key used to pass URLs to the Instagram parser.                                          |
+| `INSTAGRAM_PROXY`               | Optional proxy for Instagram extraction via yt-dlp, e.g. `http://user:pass@host:3128`.             |
 | `REDDIT_CLIENT_ID`              | Reddit API client ID used for API authentication.                                                  |
 | `REDDIT_CLIENT_SECRET`          | Reddit API client secret for secure API access.                                                    |
 | `REDDIT_APP_OWNER_USERNAME`     | Reddit username of the app owner, sent in the API User-Agent.                                      |

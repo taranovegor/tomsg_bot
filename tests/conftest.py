@@ -18,10 +18,7 @@ def stub_config():
         version="test",
         parser_http_timeout=30,
         telegram=SimpleNamespace(bot_token="test-token", base_url=None),
-        instagram=SimpleNamespace(
-            parser_url="http://instagram-parser.test/parse",
-            encryption_key="a" * 16,
-        ),
+        instagram=SimpleNamespace(proxy=None),
         reddit=SimpleNamespace(
             client_id="reddit-client-id",
             client_secret="reddit-client-secret",

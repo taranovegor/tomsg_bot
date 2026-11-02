@@ -59,33 +59,20 @@ class TestTwitterTimeout:
 
 
 class TestInstagramTimeout:
-    @responses_lib.activate
-    def test_requests_get_uses_constructor_timeout(self):
-        responses_lib.add(
-            responses_lib.GET,
-            "http://ig.test/parse",
-            json={
-                "video": [{"video": "http://v/v.mp4", "thumbnail": "http://v/t.jpg"}],
-                "image": [],
-            },
-        )
-        import requests as _requests
-
-        from parsers.instagram.cipher import Cipher
+    def test_yt_dlp_uses_constructor_timeout(self):
         from parsers.instagram.parser import Parser
 
-        with patch("parsers.instagram.parser.requests.get", wraps=_requests.get) as mock_get:
-            Parser("http://ig.test/parse", "test-agent", Cipher("a" * 16), timeout=99).parse(
-                "https://www.instagram.com/p/ABC/"
-            )
+        with patch("parsers.instagram.parser.YoutubeDL") as ydl_cls:
+            ydl = ydl_cls.return_value.__enter__.return_value
+            ydl.extract_info.return_value = {"url": "http://cdn.test/v.mp4"}
+            Parser(timeout=99).parse("https://www.instagram.com/p/ABC/")
 
-        _assert_timeout_in_call(mock_get, expected_timeout=99)
+        assert ydl_cls.call_args.args[0]["socket_timeout"] == 99
 
     def test_default_timeout_is_thirty(self):
-        from parsers.instagram.cipher import Cipher
         from parsers.instagram.parser import Parser
 
-        assert Parser("http://x.test", "agent", Cipher("a" * 16)).timeout == 30
+        assert Parser().timeout == 30
 
 
 class TestCmttTimeout:

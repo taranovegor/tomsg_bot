@@ -1,202 +1,209 @@
 """
-Characterization tests for the Instagram parser.
+Tests for the Instagram parser (backed by yt-dlp).
 
-HTTP is mocked via `responses` — no real network access.
-
-Real fixtures fetched 2026-06-25 from api.videodropper.app/allinone:
-  instagram/reel_video.json          — reel DXb_wYHDBmM  (1 video)
-  instagram/post_single_photo.json   — post DU5X2F1CF_X  (1 photo; API also returns "p": true)
-  instagram/post_gallery_5_photos.json — post DFfqfgXIK5O (5 photos, no "video" key)
-
-CDN URLs contain expiry timestamps (oe=…) — they expire in weeks but tests
-mock HTTP so this does not matter.
+yt-dlp is replaced with a fake `YoutubeDL` — no network access. Fixtures in
+fixtures/instagram mirror the shape of yt-dlp info dicts for Instagram with
+anonymised IDs and URLs:
+  reel.json            — single video post / reel
+  carousel_mixed.json  — carousel: two videos and a photo item yt-dlp could not extract (null)
 """
 
 import json
 import pathlib
+from datetime import UTC, datetime
+from unittest.mock import patch
 
 import pytest
-import responses as responses_lib
 
-from core.domain.entity import Content, Photo, Video
-from core.exceptions import ParseError
-from parsers.instagram.cipher import Cipher
+from core.domain.entity import Content, Link, Video
+from core.exceptions import InvalidUrlError, ParseError
 from parsers.instagram.parser import Parser as InstagramParser
 
 _F = pathlib.Path(__file__).parent.parent / "fixtures" / "instagram"
 
-REEL_FIXTURE = json.loads((_F / "reel_video.json").read_text())
-PHOTO_FIXTURE = json.loads((_F / "post_single_photo.json").read_text())
-GALLERY_FIXTURE = json.loads((_F / "post_gallery_5_photos.json").read_text())
+REEL_FIXTURE = json.loads((_F / "reel.json").read_text())
+CAROUSEL_FIXTURE = json.loads((_F / "carousel_mixed.json").read_text())
 
-PARSER_URL = "http://instagram-parser.test/parse"
-ENCRYPTION_KEY = "a" * 16
+REEL_URL = "https://www.instagram.com/reels/ABC123xyz/"
+POST_URL = "https://www.instagram.com/p/ABC123xyz/"
 
-REEL_URL = "https://www.instagram.com/reel/DXb_wYHDBmM/"
-PHOTO_URL = "https://www.instagram.com/p/DU5X2F1CF_X/"
-GALLERY_URL = "https://www.instagram.com/p/DFfqfgXIK5O/"
+
+class FakeYoutubeDL:
+    """Stands in for yt_dlp.YoutubeDL; records options, returns a canned info dict."""
+
+    instances: list["FakeYoutubeDL"] = []
+    result: dict | None = None
+    errors: list[str] = []
+
+    def __init__(self, options):
+        self.options = options
+        self.calls = []
+        FakeYoutubeDL.instances.append(self)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def extract_info(self, url, download=True):
+        self.calls.append((url, download))
+        for msg in FakeYoutubeDL.errors:
+            self.options["logger"].error(msg)
+        return FakeYoutubeDL.result
+
+
+@pytest.fixture
+def ydl():
+    FakeYoutubeDL.instances = []
+    FakeYoutubeDL.result = None
+    FakeYoutubeDL.errors = []
+    with patch("parsers.instagram.parser.YoutubeDL", FakeYoutubeDL):
+        yield FakeYoutubeDL
 
 
 @pytest.fixture
 def parser():
-    return InstagramParser(PARSER_URL, "test-agent/1.0", Cipher(ENCRYPTION_KEY))
-
-
-# supports()
+    return InstagramParser()
 
 
 class TestSupports:
-    def test_post_url(self, parser):
-        assert parser.supports("https://www.instagram.com/p/ABC123/")
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.instagram.com/p/ABC123/",
+            "https://www.instagram.com/reels/ABC123/",
+            "https://www.instagram.com/reel/ABC123/",
+            "https://www.instagram.com/share/ABC123/",
+            "https://instagram.com/p/ABC123/?img_index=1",
+        ],
+    )
+    def test_supported(self, parser, url):
+        assert parser.supports(url)
 
-    def test_reel_url(self, parser):
-        assert parser.supports("https://www.instagram.com/reels/ABC123/")
-
-    def test_reel_url_singular(self, parser):
-        assert parser.supports("https://www.instagram.com/reel/DXb_wYHDBmM/")
-
-    def test_share_url(self, parser):
-        assert parser.supports("https://www.instagram.com/share/ABC123/")
-
-    def test_without_www(self, parser):
-        assert parser.supports("https://instagram.com/p/ABC123/")
-
-    def test_rejects_twitter(self, parser):
-        assert not parser.supports("https://x.com/user/status/123")
-
-    def test_rejects_ig_profile(self, parser):
-        assert not parser.supports("https://www.instagram.com/someuser/")
-
-
-# parse() — reel (1 video, real fixture)
+    @pytest.mark.parametrize(
+        "url",
+        ["https://x.com/user/status/123", "https://www.instagram.com/someuser/"],
+    )
+    def test_unsupported(self, parser, url):
+        assert not parser.supports(url)
 
 
-@responses_lib.activate
-def test_reel_returns_content(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=REEL_FIXTURE, status=200)
-    assert isinstance(parser.parse(REEL_URL), Content)
+def test_rejects_unsupported_url(parser, ydl):
+    with pytest.raises(InvalidUrlError):
+        parser.parse("https://www.instagram.com/someuser/")
+    assert ydl.instances == []
 
 
-@responses_lib.activate
-def test_reel_backlink(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=REEL_FIXTURE, status=200)
-    assert parser.parse(REEL_URL).backlink.url == REEL_URL
+class TestOptions:
+    def test_extracts_without_download(self, parser, ydl):
+        ydl.result = REEL_FIXTURE
+        parser.parse(REEL_URL)
+        assert ydl.instances[0].calls == [(REEL_URL, False)]
+
+    def test_prefers_progressive_format(self, parser, ydl):
+        ydl.result = REEL_FIXTURE
+        parser.parse(REEL_URL)
+        assert ydl.instances[0].options["format"].startswith("best[vcodec!=none][acodec!=none]")
+
+    def test_no_proxy_by_default(self, parser, ydl):
+        ydl.result = REEL_FIXTURE
+        parser.parse(REEL_URL)
+        assert "proxy" not in ydl.instances[0].options
+
+    def test_proxy_passed_when_configured(self, ydl):
+        ydl.result = REEL_FIXTURE
+        InstagramParser(proxy="http://proxy.test:3128").parse(REEL_URL)
+        assert ydl.instances[0].options["proxy"] == "http://proxy.test:3128"
 
 
-@responses_lib.activate
-def test_reel_video_media(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=REEL_FIXTURE, status=200)
+class TestReel:
+    @pytest.fixture
+    def content(self, parser, ydl):
+        ydl.result = REEL_FIXTURE
+        return parser.parse(REEL_URL)
+
+    def test_returns_content(self, content):
+        assert isinstance(content, Content)
+        assert content.backlink.url == REEL_URL
+
+    def test_video(self, content):
+        assert len(content.media) == 1
+        video = content.media[0]
+        assert isinstance(video, Video)
+        assert video.resource_url == REEL_FIXTURE["url"]
+        assert video.thumbnail_url == REEL_FIXTURE["thumbnail"]
+        assert video.mime_type == "video/mp4"
+
+    def test_text_is_raw_caption(self, content):
+        # Sanitising is the renderer's job (shared.htmls.sanitize_html).
+        assert content.text == REEL_FIXTURE["description"]
+
+    def test_author(self, content):
+        assert content.author == Link("https://www.instagram.com/some.user/", "Display Name")
+
+    def test_created_at_is_utc(self, content):
+        assert content.created_at == datetime.fromtimestamp(REEL_FIXTURE["timestamp"], UTC)
+        assert content.created_at.tzinfo is UTC
+
+    def test_metrics(self, content):
+        assert content.metrics == ["💬 10", "❤️ 6K"]
+
+
+def test_missing_metadata_is_none(parser, ydl):
+    ydl.result = {"id": "x", "url": "https://instagram.cdn.test/v.mp4", "description": ""}
     content = parser.parse(REEL_URL)
-    assert len(content.media) == 1
-    vid = content.media[0]
-    assert isinstance(vid, Video)
-    assert vid.resource_url == REEL_FIXTURE["video"][0]["video"]
-    assert vid.thumbnail_url == REEL_FIXTURE["video"][0]["thumbnail"]
-    assert vid.mime_type == "video/mp4"
+    assert content.text is None
+    assert content.author is None
+    assert content.created_at is None
+    assert content.metrics is None
+    assert content.media[0].thumbnail_url is None
 
 
-# parse() — single photo post (real fixture; API returns extra "p": true key)
+def test_author_falls_back_to_username(parser, ydl):
+    ydl.result = {"url": "https://instagram.cdn.test/v.mp4", "channel": "some.user"}
+    assert parser.parse(REEL_URL).author.text == "some.user"
 
 
-@responses_lib.activate
-def test_photo_returns_content(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=PHOTO_FIXTURE, status=200)
-    assert isinstance(parser.parse(PHOTO_URL), Content)
+class TestCarousel:
+    @pytest.fixture
+    def content(self, parser, ydl):
+        ydl.result = CAROUSEL_FIXTURE
+        ydl.errors = ["ERROR: [Instagram] child2: No video formats found!"]
+        return parser.parse(POST_URL)
+
+    def test_keeps_only_extracted_videos(self, content):
+        assert [m.resource_url for m in content.media] == [
+            "https://instagram.cdn.test/v/child1.mp4",
+            "https://instagram.cdn.test/v/child3.mp4",
+        ]
+
+    def test_post_level_fields_win(self, content):
+        assert content.text == "Carousel caption"
+        assert content.author.url == "https://www.instagram.com/some.user/"
+
+    def test_missing_fields_fall_back_to_first_item(self, content):
+        assert content.created_at == datetime.fromtimestamp(1793636092, UTC)
+        assert content.metrics == ["💬 2K", "❤️ 2M"]
 
 
-@responses_lib.activate
-def test_photo_backlink(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=PHOTO_FIXTURE, status=200)
-    assert parser.parse(PHOTO_URL).backlink.url == PHOTO_URL
+class TestFailures:
+    def test_photo_post(self, parser, ydl):
+        ydl.errors = ["ERROR: [Instagram] ABC123xyz: There is no video in this post"]
+        with pytest.raises(ParseError, match="photo posts are not supported"):
+            parser.parse(POST_URL)
 
+    def test_photo_only_carousel(self, parser, ydl):
+        ydl.result = {"_type": "playlist", "channel": "some.user", "entries": [None, None]}
+        ydl.errors = ["ERROR: [Instagram] c1: No video formats found!"] * 2
+        with pytest.raises(ParseError, match="photo posts are not supported"):
+            parser.parse(POST_URL)
 
-@responses_lib.activate
-def test_photo_one_photo_object(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=PHOTO_FIXTURE, status=200)
-    content = parser.parse(PHOTO_URL)
-    assert len(content.media) == 1
-    assert isinstance(content.media[0], Photo)
-    assert content.media[0].resource_url == PHOTO_FIXTURE["image"][0]
+    def test_other_error_is_reported(self, parser, ydl):
+        ydl.errors = ["ERROR: [Instagram] ABC123xyz: Requested content is not available"]
+        with pytest.raises(ParseError, match="Requested content is not available"):
+            parser.parse(POST_URL)
 
-
-@responses_lib.activate
-def test_photo_unknown_p_key_ignored(parser):
-    """Real API returns 'p': true alongside 'image'. Parser must not crash on unknown keys."""
-    assert "p" in PHOTO_FIXTURE
-    assert PHOTO_FIXTURE.get("video") is None  # no video key
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=PHOTO_FIXTURE, status=200)
-    content = parser.parse(PHOTO_URL)
-    assert len(content.media) == 1
-
-
-# parse() — gallery (5 photos, real fixture; no "video" key at all)
-
-
-@responses_lib.activate
-def test_gallery_returns_content(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=GALLERY_FIXTURE, status=200)
-    assert isinstance(parser.parse(GALLERY_URL), Content)
-
-
-@responses_lib.activate
-def test_gallery_five_photos(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=GALLERY_FIXTURE, status=200)
-    content = parser.parse(GALLERY_URL)
-    assert len(content.media) == 5
-    assert all(isinstance(m, Photo) for m in content.media)
-
-
-@responses_lib.activate
-def test_gallery_photo_urls_match_fixture(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=GALLERY_FIXTURE, status=200)
-    content = parser.parse(GALLERY_URL)
-    for i, url in enumerate(GALLERY_FIXTURE["image"]):
-        assert content.media[i].resource_url == url
-
-
-@responses_lib.activate
-def test_gallery_no_video_key_handled(parser):
-    """Real gallery response has no 'video' key; parser uses .get('video', [])."""
-    assert "video" not in GALLERY_FIXTURE
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=GALLERY_FIXTURE, status=200)
-    content = parser.parse(GALLERY_URL)
-    assert len(content.media) == 5
-
-
-# Encrypted header
-
-
-@responses_lib.activate
-def test_sends_encrypted_url_header(parser):
-    """The request must carry the encrypted URL in the Url header, not plain text."""
-    responses_lib.add(responses_lib.GET, PARSER_URL, json=REEL_FIXTURE, status=200)
-    parser.parse(REEL_URL)
-    sent = responses_lib.calls[0].request.headers
-    assert "Url" in sent
-    assert sent["Url"] != REEL_URL
-
-
-# Error paths
-
-
-@responses_lib.activate
-def test_raises_on_500(parser):
-    responses_lib.add(responses_lib.GET, PARSER_URL, status=500)
-    with pytest.raises(ParseError):
-        parser.parse(REEL_URL)
-
-
-@responses_lib.activate
-def test_raises_on_empty_media(parser):
-    """Response with empty video and image lists raises ParseError."""
-    responses_lib.add(responses_lib.GET, PARSER_URL, json={"video": [], "image": []}, status=200)
-    with pytest.raises(ParseError):
-        parser.parse(REEL_URL)
-
-
-@responses_lib.activate
-def test_raises_on_no_media_keys(parser):
-    """Response with neither video nor image key raises ParseError."""
-    responses_lib.add(responses_lib.GET, PARSER_URL, json={"fetch": True}, status=200)
-    with pytest.raises(ParseError):
-        parser.parse(REEL_URL)
+    def test_no_data_without_errors(self, parser, ydl):
+        with pytest.raises(ParseError, match="no data"):
+            parser.parse(POST_URL)

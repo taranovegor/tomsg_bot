@@ -1,0 +1,14 @@
+{
+  "id": "ABC123xyz",
+  "_type": "playlist",
+  "title": "Post by some.user",
+  "description": "Carousel caption",
+  "uploader": "Display Name",
+  "uploader_id": "1234567890",
+  "channel": "some.user",
+  "entries": [
+    {"id": "child1", "_type": "video", "url": "https://instagram.cdn.test/v/child1.mp4", "thumbnail": "https://instagram.cdn.test/v/child1.jpg", "timestamp": 1793636092, "like_count": 1500000, "comment_count": 2300},
+    null,
+    {"id": "child3", "_type": "video", "url": "https://instagram.cdn.test/v/child3.mp4"}
+  ]
+}

@@ -23,7 +23,6 @@ from parsers import (
     vk,
     youtube,
 )
-from parsers.instagram.cipher import Cipher as InstagramCipher
 
 # Parser instances with minimal (stub) configuration
 
@@ -33,7 +32,7 @@ def _make_twitter():
 
 
 def _make_instagram():
-    return instagram.Parser("http://ig.test/parse", "test-agent", InstagramCipher("a" * 16))
+    return instagram.Parser()
 
 
 def _make_cmtt():

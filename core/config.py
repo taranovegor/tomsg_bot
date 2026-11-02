@@ -12,11 +12,10 @@ class TelegramConfig:
 
 
 class InstagramConfig:
-    _required = ("parser_url", "encryption_key")
+    _required = ()
 
     def __init__(self):
-        self.parser_url = os.getenv("INSTAGRAM_VIDEO_PARSER_URL")
-        self.encryption_key = os.getenv("INSTAGRAM_ENCRYPTION_KEY")
+        self.proxy = os.getenv("INSTAGRAM_PROXY") or None
 
 
 class RedditConfig:

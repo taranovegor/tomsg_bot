@@ -9,8 +9,7 @@ services:
             - LOG_LEVEL
             - TELEGRAM_BOT_TOKEN
             - TELEGRAM_BASE_URL
-            - INSTAGRAM_VIDEO_PARSER_URL
-            - INSTAGRAM_ENCRYPTION_KEY
+            - INSTAGRAM_PROXY
             - REDDIT_CLIENT_ID
             - REDDIT_CLIENT_SECRET
             - REDDIT_APP_OWNER_USERNAME
